@@ -1,10 +1,14 @@
 {-# Language GeneralizedNewtypeDeriving #-}
+{-# Language MultiParamTypeClasses #-}
 
 module Text.Peggy (
-  ParserT(..),
-  runParser,
+  Parser(..),
+  ParseError(..),
+  Result(..),
+  Derivs(..),
   
-  satisfy, satisfyChar,
+  satisfy,
+  getPos,
   
   string,
   empty,
@@ -17,79 +21,119 @@ module Text.Peggy (
   ) where
 
 import Control.Applicative
-import Control.Exception.Control
-import Control.Monad.IO.Control
 import Control.Monad.State
 import Control.Monad.Error
-import Data.Maybe
 
-newtype ParserT m a =
-  ParserT { unParserT :: ErrorT String (StateT ParserState m) a }
-  deriving (Functor, Applicative,
-            Monad, MonadIO, MonadControlIO,
-            MonadState ParserState,
-            MonadError String)
+import Text.Peggy.SrcLoc
 
--- alternative semantics is back track
-instance (Applicative m, Monad m) => Alternative (ParserT m) where
-  empty = throwError ""
+newtype Parser d a = Parser { unParser :: d -> Result d a }
+
+data ParseError = ParseError SrcLoc String
+  deriving (Show)
+
+nullError :: ParseError
+nullError = ParseError (SrcLoc "" 0 1 1) ""
+
+data Result d a
+  = Parsed d a
+  | Failed ParseError
+
+instance Show a => Show (Result d a) where
+  show (Parsed _ a) = "Parsed " ++ show a
+  show (Failed err) = "Failed (" ++ show err ++ ")"
+
+class Derivs d where
+  dvPos  :: d -> SrcLoc
+  dvChar :: d -> Result d Char
+
+instance Functor (Parser d) where
+  fmap f (Parser p) = Parser $ \d ->
+    case p d of
+      Parsed e a ->
+        Parsed e (f a)
+      Failed err ->
+        Failed err
+
+instance Applicative (Parser d) where
+  pure a = Parser $ \d -> Parsed d a
   
-  a <|> b = do
-    bef <- get
-    a `catchError` (\_ -> put bef >> b)
+  Parser p <*> Parser q = Parser $ \d ->
+    case p d of
+      Parsed e g ->
+        case q e of
+          Parsed f a ->
+            Parsed f (g a)
+          Failed err ->
+            Failed err
+      Failed err ->
+        Failed err
 
-instance (Applicative m, Monad m) => MonadPlus (ParserT m) where
-  mzero = empty
-  mplus = (<|>)
+instance Monad (Parser d) where
+  return a = Parser $ \d -> Parsed d a
+  
+  Parser p >>= f = Parser $ \d -> 
+    case p d of
+      Parsed e a ->
+        unParser (f a) e
+      Failed err ->
+        Failed err
 
-data ParserState =
-  ParserState
-  { psPos :: !Posn
-  , psCur :: String
-  }
+instance Derivs d => MonadPlus (Parser d) where
+  mzero = Parser $ \d -> Failed (ParseError (dvPos d) "")
+  mplus (Parser p) (Parser q) = Parser $ \d -> 
+    case p d of
+      Parsed e a ->
+        Parsed e a
+      Failed _ ->
+        q d
 
-data Posn = Posn !Int !Int !Int -- absp line col
+instance Derivs d => Alternative (Parser d) where
+  empty = mzero
+  (<|>) = mplus
 
-runParser :: Monad m => ParserT m a -> String -> m (Either String a)
-runParser p str = do
-  evalStateT (runErrorT $ unParserT p) (ParserState (Posn 0 1 1) str)
+instance MonadError ParseError (Parser d) where
+  throwError e = Parser $ \_ ->
+    Failed e
+  catchError (Parser p) h = Parser $ \d ->
+    case p d of
+      Parsed e a ->
+        Parsed e a
+      Failed err ->
+        unParser (h err) d
 
-tabWidth :: Int
-tabWidth = 8
+--
 
-movePosn :: Posn -> Char -> Posn
-movePosn (Posn absp line col) c =
-  case c of
-    '\t' -> Posn (absp + 1) line ((col - 1 + tabWidth - 1) `div` tabWidth * tabWidth + 1)
-    '\n' -> Posn (absp + 1) (line + 1) 1
-    _    -> Posn (absp + 1) line (col + 1)
+getPos :: Derivs d => Parser d SrcLoc
+getPos = Parser $ \d ->
+  Parsed d (dvPos d)
 
-move :: Monad m => ParserT m ()
-move = do
-  s <- get
-  let c = head $ psCur s
-  put $ s { psPos = psPos s `movePosn` c, psCur = tail $ psCur s}
+anyChar :: Derivs d => Parser d Char
+anyChar = Parser dvChar
 
-satisfy :: (Applicative m, MonadPlus m) => Int -> (String -> Bool) -> ParserT m String
-satisfy n p = do
-  s <- take n <$> gets psCur
-  guard $ p s
-  replicateM_ n move
-  return s
+satisfy :: Derivs d => (Char -> Bool) -> Parser d Char
+satisfy p = do
+  c <- anyChar
+  guard $ p c
+  return c
 
-satisfyChar :: (Applicative m, MonadPlus m) => (Char -> Bool) -> ParserT m Char
-satisfyChar p = head <$> satisfy 1 (\cs -> p $ head cs)
+char :: Derivs d => Char -> Parser d Char
+char c = satisfy (== c)
 
-string :: (Applicative m, MonadPlus m) => String -> ParserT m String
-string str = satisfy (length str) (== str)
+string :: Derivs d => String -> Parser d String
+string = mapM char
 
-expect :: MonadControlIO m => ParserT m a -> ParserT m ()
-expect p = btrack $ p >> return ()
+expect :: Derivs d => Parser d a -> Parser d ()
+expect (Parser p) = Parser $ \d ->
+  case p d of
+    Parsed _ _ ->
+      Parsed d ()
+    Failed _ ->
+      Failed nullError
 
-unexpect :: (Applicative m, MonadControlIO m) => ParserT m a -> ParserT m ()
-unexpect p = btrack $ do
-  b <- optional p
-  if isJust b then empty else pure ()
-
-btrack :: MonadControlIO m => ParserT m a -> ParserT m a
-btrack p = bracket get put $ const p
+unexpect :: Derivs d => Parser d a -> Parser d ()
+unexpect (Parser p) = Parser $ \d ->
+  case p d of
+    Parsed _ _ ->
+      Failed nullError
+    Failed _ ->
+      Parsed d ()
