@@ -12,33 +12,34 @@ syntax :: Parser Syntax
 syntax = many definition <* skips <* eof
 
 definition :: Parser Definition
-definition = Definition <$> identifier <* symbol "=" <*> many expr
+definition =
+  Definition <$> identifier <* symbol ":" <*> haskellType <* symbol "=" <*> expr
   <?> "definition"
 
 expr :: Parser Expr
 expr = choiceExpr
   
 choiceExpr :: Parser Expr
-choiceExpr = sepBy1 sequenceExpr (symbol "/")  >>= \es -> case es of
+choiceExpr = sepBy1 semanticExpr (symbol "/")  >>= \es -> case es of
   [e] -> pure e
   _ -> pure $ Choice es
   <?> "choice expr"
 
-sequenceExpr :: Parser Expr
-sequenceExpr = some (try (semanticExpr <* notFollowedBy (symbol "="))) >>= \es -> case es of
-  [e] -> pure e
-  _ -> pure $ Sequence es
-
 semanticExpr :: Parser Expr
-semanticExpr = suffixExpr >>= \e ->
+semanticExpr = sequenceExpr >>= \e ->
   option e $
     Semantic e <$> (symbol "{" *> codeFragment <* symbol "}")
 
+sequenceExpr :: Parser Expr
+sequenceExpr = some (try (suffixExpr <* notFollowedBy (symbol ":" <|> symbol "="))) >>= \es -> case es of
+  [e] -> pure e
+  _ -> pure $ Sequence es
+
 suffixExpr :: Parser Expr
 suffixExpr = prefixExpr >>= go where
-  go e = option e $ (symbol "*" *> go (Many e) <|>
-                     symbol "+" *> go (Some e) <|>
-                     symbol "?" *> go (Optional e))
+  go e = option e (symbol "*" *> go (Many e) <|>
+                   symbol "+" *> go (Some e) <|>
+                   symbol "?" *> go (Optional e))
 
 prefixExpr :: Parser Expr
 prefixExpr =
@@ -71,8 +72,22 @@ range =
   where
     rchar = noneOf "]"
 
+haskellType :: Parser HaskellType
+haskellType = some (noneOf "=")
+  <?> "type signature"
+
 codeFragment :: Parser CodeFragment
-codeFragment = CodeFragment <$> many (noneOf "}")
+codeFragment = many codePart
+  <?> "code fragment"
+
+codePart :: Parser CodePart
+codePart =
+  try argument <|>
+  Snippet <$> some (try (notFollowedBy argument >> noneOf "}"))
+
+argument :: Parser CodePart
+argument = try $ Argument <$ char '$' <*> number where
+  number = read <$> some digit
 
 --
 

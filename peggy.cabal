@@ -24,6 +24,8 @@ Library
                      , mtl >= 2.0 && < 2.1
                      , monad-control >= 0.2 && < 0.3
                      , parsec >= 3.1 && < 3.2
+                     , template-haskell >= 2.5 && < 2.7
+                     , haskell-src-meta >= 0.5 && < 0.6
   
   -- Other-modules:       
   
@@ -34,3 +36,5 @@ Executable peggy
                      , mtl >= 2.0 && < 2.1
                      , monad-control >= 0.2 && < 0.3
                      , parsec >= 3.1 && < 3.2
+                     , template-haskell >= 2.5 && < 2.7
+                     , haskell-src-meta >= 0.5 && < 0.6

@@ -1,20 +1,33 @@
-module Main (main) where
+{-# Language QuasiQuotes #-}
 
-import Control.Monad
-import System.Environment
-import Text.Parsec.String
+module Main (main) where
 
 import Text.Peggy
 import Text.Peggy.SrcLoc
-import Text.Peggy.Parser
+import Text.Peggy.Quote
 
-import Prelude hiding (exp)
+[peggy|
+-- Simple Arithmetic Expression Parser
+
+expr : Double
+  = expr "+" fact { $1 + $2 }
+  / expr "-" fact { $1 - $2 }
+  / fact
+
+fact : Double
+  = fact "*" term { $1 * $2 }
+  / fact "/" term { $1 / $2 }
+  / term
+
+term : Double
+  = "(" expr ")"
+  / number
+
+number : Double
+  = [1-9] [0-9]* { read ($1 : $2) }
+|]
 
 main :: IO ()
 main = do
-  [fname] <- getArgs
-  res <- parseFromFile syntax fname
-  case res of
-    Left err -> print err
-    Right defs -> do
-      forM_ defs print
+  con <- getContents
+  print $ unParser expr $ parse (SrcLoc "<stdin>" 0 1 1) con

@@ -3,14 +3,16 @@ module Text.Peggy.Syntax (
   Definition(..),
   Expr(..),
   CharRange(..),
-  CodeFragment(..),
+  CodeFragment,
+  CodePart(..),
   Identifier,
+  HaskellType,
   ) where
 
 type Syntax = [Definition]
 
 data Definition
-  = Definition Identifier [Expr]
+  = Definition Identifier HaskellType Expr
   deriving (Show)
 
 data Expr
@@ -35,8 +37,12 @@ data CharRange
   | CharOne Char
   deriving (Show)
 
-data CodeFragment
-  = CodeFragment String
+type CodeFragment = [CodePart]
+
+data CodePart
+  = Snippet String
+  | Argument Int
   deriving (Show)
 
 type Identifier = String
+type HaskellType = String
