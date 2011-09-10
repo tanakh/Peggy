@@ -129,6 +129,12 @@ generate defs = defDerivs : instDerivs : parse : parsers where
           Terminals _ ->
             NoBindS (genP f) :
             genBinds ix fs
+          And _ ->
+            NoBindS (genP f) :
+            genBinds ix fs
+          Not _ ->
+            NoBindS (genP f) :
+            genBinds ix fs
           _ ->
             BindS (VarP $ mkName $ var ix) (genP f):
             genBinds (ix+1) fs

@@ -3,6 +3,8 @@ module Text.Peggy.Parser (
   ) where
 
 import Control.Applicative
+import Data.Char
+import Numeric
 import Text.Parsec hiding ((<|>), many)
 import Text.Parsec.String
 
@@ -60,14 +62,24 @@ stringLit = lexeme (char '\"' *> many charLit <* char '\"')
   <?> "literal"
 
 charLit :: Parser Char
-charLit = noneOf "\""
+charLit = escaped <|> noneOf "\"" where
+  escaped = char '\\' >> escChar
+  
+  escChar =
+    (pure '\n' <* char 'n') <|>
+    (pure '\r' <* char 'r') <|>
+    (pure '\t' <* char 't') <|>
+    (pure '\\' <* char '\\') <|>
+    (pure '\"' <* char '\"') <|>
+    (pure '\'' <* char '\'') <|>
+    (chr . fst . head . readHex <$ char 'x' <*> count 2 hexDigit)
 
 set :: Parser [CharRange]
 set = symbol "[" *> many range <* char ']'
 
 range :: Parser CharRange
 range =
-  (CharRange <$> rchar <* char '-' <*> rchar) <|>
+  try (CharRange <$> rchar <* char '-' <*> rchar) <|>
   (CharOne <$> rchar)
   where
     rchar = noneOf "]"
