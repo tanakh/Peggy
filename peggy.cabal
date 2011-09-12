@@ -1,8 +1,8 @@
 Name:                peggy
 Version:             0.1
-Synopsis:            A Parser Generator
+Synopsis:            The Parser Generator for Haskell
 
-Description:         A Parser Generator
+Description:         The Parser Generator for Haskell
 
 Homepage:            http://github.com/tanakh/peggy
 License:             BSD3
