@@ -6,6 +6,7 @@ module Text.Peggy (
   ParseError(..),
   Result(..),
   Derivs(..),
+  runParser,
   
   getPos,
   
@@ -48,6 +49,10 @@ class Derivs d where
   dvPos  :: d -> SrcPos
   dvChar :: d -> Result d Char
   parse  :: SrcPos -> String -> d
+
+runParser :: Derivs d => Parser d a -> String -> String -> Result d a
+runParser p sourceName source =
+  unParser p $ parse (SrcPos sourceName 0 1 1) source
 
 instance Functor (Parser d) where
   fmap f (Parser p) = Parser $ \d ->

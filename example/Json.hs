@@ -1,7 +1,6 @@
 {-# Language QuasiQuotes #-}
 
 import Text.Peggy
-import Text.Peggy.SrcLoc
 import Text.Peggy.Quote
 
 data JSON
@@ -57,4 +56,4 @@ elements :: [JSON]
 |]
 
 main :: IO ()
-main = print . unParser json . parse (SrcPos "<stdin>" 0 1 1) =<< getContents
+main = print . runParser json "<stdin>" =<< getContents
