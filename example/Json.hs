@@ -57,4 +57,4 @@ elements : [JSON]
 |]
 
 main :: IO ()
-main = print . unParser json . parse (SrcLoc "<stdin>" 0 1 1) =<< getContents
+main = print . unParser json . parse (SrcPos "<stdin>" 0 1 1) =<< getContents
