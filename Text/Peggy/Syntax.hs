@@ -18,6 +18,7 @@ data Definition
 data Expr
   = Terminals String
   | TerminalSet [CharRange]
+  | TerminalAny
   | NonTerminal Identifier
   | Empty
   

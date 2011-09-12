@@ -14,10 +14,10 @@ data JSON
   deriving (Show)
 
 [peggy|
-json : JSON
+json :: JSON
   = object / array
 
-value : JSON
+value :: JSON
   = jsstring { JSONString $1 }
   / number   { JSONNumber $1 }
   / object
@@ -26,32 +26,32 @@ value : JSON
   / "false"  { JSONBool False }
   / "null"   { JSONNull }
 
-jsstring : String
+jsstring :: String
   = "\"" jschar* "\""
 
-jschar : Char
+jschar :: Char
   = !"\"" [0-9a-zA-Z]
 
-number : Double
+number :: Double
   = [1-9] [0-9]* { read ($1 : $2) }
   / [0]          { 0.0 }
 
-object : JSON
+object :: JSON
   = "{" members "}" { JSONObject $1 }
   / "{" "}"         { JSONObject [] }
 
-members : [(String, JSON)]
+members :: [(String, JSON)]
   = pair "," members { $1 : $2 }
   / pair             { [$1] }
 
-pair : (String, JSON)
+pair :: (String, JSON)
   = jsstring ":" value
 
-array : JSON
+array :: JSON
   = "[" elements "]" { JSONArray $1 }
   / "[" "]"          { JSONArray [] }
 
-elements : [JSON]
+elements :: [JSON]
   = value "," elements { $1 : $2 }
   / value              { [$1] }
 |]

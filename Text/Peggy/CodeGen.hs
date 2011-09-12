@@ -26,12 +26,11 @@ generate defs = do
 
   defDerivs = dataD (cxt []) derivsName [] [con] [] where
     con = recC derivsName $ udvChar : udvPos : map toDV defs
-    udvChar = (mkName "udv_char", NotStrict, ) <$>
-              (conT ''Result `appT` conT derivsName `appT` conT ''Char)
-    udvPos  = (mkName "udv_pos", NotStrict, ) <$> conT ''SrcPos
-
-  toDV (Definition nont typ _) =
-    (, NotStrict, derivType typ) <$> return (mkName ("udv_" ++ nont))
+    udvChar = (mkName "udv_char", NotStrict, ) <$> [t| Result $(conT derivsName) Char |]
+    udvPos  = (mkName "udv_pos" , NotStrict, ) <$> [t| SrcPos |]
+  toDV (Definition nont typ _) = do
+    t <- [t| Result $(conT derivsName) $(parseType' typ) |]
+    return (mkName $ "udv_" ++ nont, NotStrict, t)
 
   instDerivs =
     instanceD (cxt []) (conT ''Derivs `appT` conT derivsName)
@@ -68,7 +67,7 @@ generate defs = do
   parsers = concatMap gen defs
   
   gen (Definition nont typ e) =
-    [ sigD (mkName nont) $ return $ parserType typ
+    [ sigD (mkName nont) [t| Parser $(conT derivsName) $(parseType' typ) |]
     , funD (mkName nont)
       [clause [] (normalB $ genP e) []]]
   
@@ -77,6 +76,8 @@ generate defs = do
       [| string str |]
     TerminalSet rs ->
       [| satisfy $(genRanges rs) |]
+    TerminalAny ->
+      [| anyChar |]
     NonTerminal nont ->
       [| Parser $(varE $ mkName $ "udv_" ++ nont) |]
     Empty ->
@@ -110,19 +111,19 @@ generate defs = do
     where
       genBinds _ [] = []
       genBinds ix (f:fs) =
-        case f of
-          Terminals _ ->
-            noBindS (genP f) :
-            genBinds ix fs
-          And _ ->
-            noBindS (genP f) :
-            genBinds ix fs
-          Not _ ->
-            noBindS (genP f) :
-            genBinds ix fs
-          _ ->
-            bindS (varP $ mkName $ var ix) (genP f):
-            genBinds (ix+1) fs
+        if shouldBind f
+        then
+          bindS (varP $ mkName $ var ix) (genP f) :
+          genBinds (ix+1) fs
+        else
+          noBindS (genP f) :
+          genBinds ix fs
+
+      shouldBind f = case f of
+        Terminals _ -> False
+        And _ -> False
+        Not _ -> False
+        _ -> True
 
       isBind (BindS _ _) = True
       isBind _ = False
@@ -147,14 +148,15 @@ generate defs = do
     toStr (Snippet str) = str
     toStr (Argument n)  = var n
 
-  parserType typ = 
-    case parseType ("Parser UserDerivs (" ++ typ ++ ")") of
+  parseType' typ =
+    case parseType typ of
       Left err -> error $ "type parse error :" ++ typ ++ ", " ++ err
-      Right t -> t  
-
-  derivType typ = 
-    case parseType ("Result UserDerivs (" ++ typ ++ ")") of
-      Left err -> error $ "type parse error :" ++ typ ++ ", " ++ err
-      Right t -> t
+      Right t -> case t of
+        -- GHC.Unit.() is not a type name. Is it a bug of haskell-src-meta?
+        -- Use (TupleT 0) insted.
+        ConT con | show con == "GHC.Unit.()" ->
+          return $ TupleT 0
+        _ ->
+          return t
 
   var n = "v" ++ show (n :: Int)

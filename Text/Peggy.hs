@@ -7,9 +7,11 @@ module Text.Peggy (
   Result(..),
   Derivs(..),
   
-  satisfy,
   getPos,
   
+  anyChar,
+  satisfy,
+  char,
   string,
   empty,
   (<|>),

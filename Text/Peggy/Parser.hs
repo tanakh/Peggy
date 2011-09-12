@@ -15,7 +15,7 @@ syntax = many definition <* skips <* eof
 
 definition :: Parser Definition
 definition =
-  Definition <$> identifier <* symbol ":" <*> haskellType <* symbol "=" <*> expr
+  Definition <$> identifier <* symbol "::" <*> haskellType <* symbol "=" <*> expr
   <?> "definition"
 
 expr :: Parser Expr
@@ -33,7 +33,7 @@ semanticExpr = sequenceExpr >>= \e ->
     Semantic e <$> (symbol "{" *> codeFragment <* symbol "}")
 
 sequenceExpr :: Parser Expr
-sequenceExpr = some (try (suffixExpr <* notFollowedBy (symbol ":" <|> symbol "="))) >>= \es -> case es of
+sequenceExpr = some (try (suffixExpr <* notFollowedBy (symbol "::" <|> symbol "="))) >>= \es -> case es of
   [e] -> pure e
   _ -> pure $ Sequence es
 
@@ -53,6 +53,7 @@ primExpr :: Parser Expr
 primExpr =
   (Terminals <$> stringLit) <|>
   (TerminalSet <$> set) <|>
+  (TerminalAny <$ symbol ".") <|>
   (NonTerminal <$> identifier) <|>
   symbol "(" *> expr <* symbol ")"
   <?> "primitive expression"
