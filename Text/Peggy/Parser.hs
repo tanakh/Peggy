@@ -66,12 +66,12 @@ charLit = escaped <|> noneOf "\"" where
   escaped = char '\\' >> escChar
   
   escChar =
-    (pure '\n' <* char 'n') <|>
-    (pure '\r' <* char 'r') <|>
-    (pure '\t' <* char 't') <|>
-    (pure '\\' <* char '\\') <|>
-    (pure '\"' <* char '\"') <|>
-    (pure '\'' <* char '\'') <|>
+    ('\n' <$ char 'n' ) <|>
+    ('\r' <$ char 'r' ) <|>
+    ('\t' <$ char 't' ) <|>
+    ('\\' <$ char '\\') <|>
+    ('\"' <$ char '\"') <|>
+    ('\'' <$ char '\'') <|>
     (chr . fst . head . readHex <$ char 'x' <*> count 2 hexDigit)
 
 set :: Parser [CharRange]
@@ -119,15 +119,15 @@ lexeme :: Parser a -> Parser a
 lexeme p = try $ skips *> p
 
 skips :: Parser ()
-skips = pure () <* many ((pure () <* space) <|> comment)
+skips = () <$ many ((() <$ space) <|> comment)
 
 comment :: Parser ()
 comment = lineComment <|> regionComment
   <?> "comment"
 
 lineComment :: Parser ()
-lineComment = try (string "--") >> manyTill anyChar (char '\n') >> pure ()
+lineComment = () <$ try (string "--") <* manyTill anyChar (char '\n')
 
 regionComment :: Parser ()
-regionComment = try (string "{-") *> com *> string "-}" *> pure () where
-  com = many $ regionComment <|> (notFollowedBy (string "-}") *> anyChar *> pure ())
+regionComment = () <$ try (string "{-") <* com <* string "-}" where
+  com = () <$ many (regionComment <|> (notFollowedBy (string "-}") <* anyChar))

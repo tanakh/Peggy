@@ -14,16 +14,14 @@ data JSON
   deriving (Show)
 
 [peggy|
--- JSON parser
- 
 json : JSON
   = object / array
 
 value : JSON
   = jsstring { JSONString $1 }
   / number   { JSONNumber $1 }
-  / object   { $1 }
-  / array    { $1 }
+  / object
+  / array
   / "true"   { JSONBool True }
   / "false"  { JSONBool False }
   / "null"   { JSONNull }
