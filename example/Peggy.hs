@@ -34,7 +34,7 @@ suffixExpr :: Expr
   / prefixExpr
 
 prefixExpr :: Expr
-  = "?" primExpr { And $1 }
+  = "&" primExpr { And $1 }
   / "!" primExpr { Not $1 }
   / primExpr
 
@@ -55,7 +55,7 @@ escChar :: Char
   / '\\' { '\r' }
   / '\"' { '\r' }
   / '\'' { '\r' }
-  / '\x' hexDigit hexDigit { chr . fst . head . readHex $ [$1, $2] }
+  / 'x' hexDigit hexDigit { chr . fst . head . readHex $ [$1, $2] }
 
 range :: CharRange
   = [^\]] '-' [^\]] { CharRange $1 $2 }
