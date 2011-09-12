@@ -71,7 +71,8 @@ codePart :: CodePart
   = '$' digit+ { Argument $ read $1 }
   / (!'}' .)+  { Snippet $1 }
 
-skip = space / comment
+skip :: ()
+  = space / comment
 
 comment :: ()
   = lineComment / regionComment
