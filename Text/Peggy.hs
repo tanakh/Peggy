@@ -32,7 +32,7 @@ data ParseError = ParseError SrcLoc String
   deriving (Show)
 
 nullError :: ParseError
-nullError = ParseError (SrcLoc "" 0 1 1) ""
+nullError = ParseError (LocPos (SrcPos "" 0 1 1)) ""
 
 data Result d a
   = Parsed d a
@@ -43,7 +43,7 @@ instance Show a => Show (Result d a) where
   show (Failed err) = "Failed (" ++ show err ++ ")"
 
 class Derivs d where
-  dvPos  :: d -> SrcLoc
+  dvPos  :: d -> SrcPos
   dvChar :: d -> Result d Char
 
 instance Functor (Parser d) where
@@ -79,7 +79,7 @@ instance Monad (Parser d) where
         Failed err
 
 instance Derivs d => MonadPlus (Parser d) where
-  mzero = Parser $ \d -> Failed (ParseError (dvPos d) "")
+  mzero = Parser $ \d -> Failed (ParseError (LocPos $ dvPos d) "")
   mplus (Parser p) (Parser q) = Parser $ \d -> 
     case p d of
       Parsed e a ->
@@ -103,7 +103,7 @@ instance MonadError ParseError (Parser d) where
 
 --
 
-getPos :: Derivs d => Parser d SrcLoc
+getPos :: Derivs d => Parser d SrcPos
 getPos = Parser $ \d ->
   Parsed d (dvPos d)
 

@@ -1,12 +1,17 @@
 module Text.Peggy.SrcLoc (
   SrcLoc(..),
-  SrcSpan,
+  SrcPos(..),
   
   advance,
   ) where
 
-data SrcLoc =
-  SrcLoc
+data SrcLoc
+  = LocPos  SrcPos
+  | LocSpan SrcPos SrcPos
+  deriving (Show)
+
+data SrcPos =
+  SrcPos
   { locFile :: FilePath
   , locAbs  :: !Int
   , locLine :: !Int
@@ -14,14 +19,12 @@ data SrcLoc =
   }
   deriving (Show)
 
-type SrcSpan = (SrcLoc, SrcLoc)
-
 tabWidth :: Int
 tabWidth = 8
 
-advance :: SrcLoc -> Char -> SrcLoc
-advance (SrcLoc f a l c) x =
+advance :: SrcPos -> Char -> SrcPos
+advance (SrcPos f a l c) x =
   case x of
-    '\t' -> SrcLoc f (a + 1) l ((c - 1 + tabWidth - 1) `div` tabWidth * tabWidth + 1)
-    '\n' -> SrcLoc f (a + 1) (l + 1) 1
-    _    -> SrcLoc f (a + 1) l (c + 1)
+    '\t' -> SrcPos f (a + 1) l ((c - 1 + tabWidth - 1) `div` tabWidth * tabWidth + 1)
+    '\n' -> SrcPos f (a + 1) (l + 1) 1
+    _    -> SrcPos f (a + 1) l (c + 1)

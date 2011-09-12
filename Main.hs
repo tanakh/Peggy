@@ -30,4 +30,4 @@ number : Double
 main :: IO ()
 main = do
   con <- getContents
-  print $ unParser expr $ parse (SrcLoc "<stdin>" 0 1 1) con
+  print $ unParser expr $ parse (SrcPos "<stdin>" 0 1 1) con

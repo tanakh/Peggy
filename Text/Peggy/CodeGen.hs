@@ -25,7 +25,7 @@ generate defs = defDerivs : instDerivs : parse : parsers where
     
     udvChar = (mkName "udv_char", NotStrict,
                AppT (AppT (ConT ''Result) (ConT derivsName)) (ConT ''Char))
-    udvPos  = (mkName "udv_pos",  NotStrict, ConT ''SrcLoc)
+    udvPos  = (mkName "udv_pos",  NotStrict, ConT ''SrcPos)
     
     toDV (Definition nont typ _) =
       ( mkName ("udv_" ++ nont)
@@ -54,7 +54,7 @@ generate defs = defDerivs : instDerivs : parse : parsers where
           []
         , Match
           WildP
-          (NormalB $ app1c 'Failed (app2c 'ParseError (app1 'dvPos (VarE d)) (LitE (StringL ""))))
+          (NormalB $ app1c 'Failed (app2c 'ParseError (app1c 'LocPos $ app1 'dvPos (VarE d)) (LitE (StringL ""))))
           []
         ])
        []
