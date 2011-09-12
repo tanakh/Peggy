@@ -1,8 +1,7 @@
-{-# Language QuasiQuote #-}
+{-# Language QuasiQuotes #-}
 
 import Text.Peggy
 import Text.Peggy.Syntax
-import Text.Peggy.SrcLoc
 import Text.Peggy.Quote
 
 [peggy|
@@ -12,7 +11,7 @@ syntax :: Syntax
   = definition* !.
 
 definition :: Definition
-  = ident "::" haskellType = expr { Definition $1 $2 $3 }
+  = ident "::" haskellType "=" expr { Definition $1 $2 $3 }
 
 expr :: Expr
   = choiceExpr
@@ -88,4 +87,4 @@ hexDigit :: Char = [0-9a-fA-F]
 |]
 
 main :: IO ()
-main = print . runParser expr "<stdin>" =<< getContents
+main = print . runParser syntax "<stdin>" =<< getContents
