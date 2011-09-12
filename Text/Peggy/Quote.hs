@@ -21,4 +21,3 @@ quote txt = do
     Right defs -> genCode defs
   where
     initPos loc = newPos (loc_filename loc) (fst $ loc_start loc) (snd $ loc_start loc)
-    

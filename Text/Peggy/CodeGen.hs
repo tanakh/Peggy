@@ -20,7 +20,7 @@ genCode = generate . removeLeftRecursion . normalize
 
 generate :: Syntax -> Q [Dec]
 generate defs = do
-  sequence $ [defDerivs, instDerivs, parse] ++ parsers
+  sequence $ [defDerivs, instDerivs] ++ parsers
   where
   derivsName = mkName "UserDerivs"
 
@@ -37,19 +37,18 @@ generate defs = do
     instanceD (cxt []) (conT ''Derivs `appT` conT derivsName)
     [ valD (varP 'dvPos) (normalB $ varE $ mkName "udv_pos") []
     , valD (varP 'dvChar) (normalB $ varE $ mkName "udv_char") []
+    , implParse
     ]
 
-  parse =
-    funD fname
-    [clause [varP pos, varP str]
-     (normalB $ varE d)
+  implParse =
+    funD 'parse [clause [varP pos, varP str] (normalB [| $(varE d) |])
      [ valD (varP d)
        (normalB $ appsE $ [conE derivsName, varE pchar, varE pos] ++ pp defs)
        []
      , valD (varP pchar)
        (normalB $ caseE (varE str)
         [ match (infixP (varP c) '(:) (varP cs))
-          (normalB [| Parsed ($(varE fname) ($(varE pos) `advance` $(varE c)) $(varE cs)) $(varE c) |])
+          (normalB [| Parsed (parse ($(varE pos) `advance` $(varE c)) $(varE cs)) $(varE c) |])
           []
         , match wildP
           (normalB [| Failed $ ParseError (LocPos $ dvPos $(varE d)) "" |])
@@ -59,7 +58,6 @@ generate defs = do
       ]
     ]
     where
-      fname = mkName "parse"
       c = mkName "c"
       cs =  mkName "cs"
       d = mkName "d"

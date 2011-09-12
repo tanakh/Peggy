@@ -45,6 +45,7 @@ instance Show a => Show (Result d a) where
 class Derivs d where
   dvPos  :: d -> SrcPos
   dvChar :: d -> Result d Char
+  parse  :: SrcPos -> String -> d
 
 instance Functor (Parser d) where
   fmap f (Parser p) = Parser $ \d ->
