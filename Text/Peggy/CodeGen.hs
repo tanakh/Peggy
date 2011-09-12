@@ -37,35 +37,33 @@ generate defs = do
     instanceD (cxt []) (conT ''Derivs `appT` conT derivsName)
     [ valD (varP 'dvPos) (normalB $ varE $ mkName "udv_pos") []
     , valD (varP 'dvChar) (normalB $ varE $ mkName "udv_char") []
-    , implParse
-    ]
-
-  implParse =
-    funD 'parse [clause [varP pos, varP str] (normalB [| $(varE d) |])
-     [ valD (varP d)
-       (normalB $ appsE $ [conE derivsName, varE pchar, varE pos] ++ pp defs)
-       []
-     , valD (varP pchar)
-       (normalB $ caseE (varE str)
-        [ match (infixP (varP c) '(:) (varP cs))
-          (normalB [| Parsed (parse ($(varE pos) `advance` $(varE c)) $(varE cs)) $(varE c) |])
-          []
-        , match wildP
-          (normalB [| Failed $ ParseError (LocPos $ dvPos $(varE d)) "" |])
-          []
-        ])
-       []
-      ]
+    , funD 'parse [clause [varP pos, varP str] (normalB [| $(varE d) |]) implParse]
     ]
     where
-      c = mkName "c"
-      cs =  mkName "cs"
-      d = mkName "d"
-      pchar = mkName "pchar"
-      pos = mkName "pos"
-      str = mkName "str"
+    implParse =
+      [ valD (varP d)
+        (normalB $ appsE $ [conE derivsName, varE pchar, varE pos] ++ pp defs)
+        []
+      , valD (varP pchar)
+        (normalB $ caseE (varE str)
+          [ match (infixP (varP c) '(:) (varP cs))
+            (normalB [| Parsed (parse ($(varE pos) `advance` $(varE c)) $(varE cs)) $(varE c) |])
+            []
+          , match wildP
+            (normalB [| Failed $ ParseError (LocPos $ dvPos $(varE d)) "" |])
+            []
+          ])
+         []
+        ]
 
-      pp = map (\(Definition nont _ _) -> [| unParser $(varE $ mkName $ nont) $(varE d) |])
+    c = mkName "c"
+    cs =  mkName "cs"
+    d = mkName "d"
+    pchar = mkName "pchar"
+    pos = mkName "pos"
+    str = mkName "str"
+
+    pp = map (\(Definition nont _ _) -> [| unParser $(varE $ mkName $ nont) $(varE d) |])
   
   parsers = concatMap gen defs
   
