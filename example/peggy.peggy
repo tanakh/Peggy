@@ -1,12 +1,3 @@
-{-# Language QuasiQuotes #-}
-
-import Data.Char
-import Numeric
-import Text.Peggy
-import Text.Peggy.Syntax
-import Text.Peggy.Quote
-
-[peggy|
 -- A Parser for peggy itself.
 
 syntax :: Syntax
@@ -41,17 +32,13 @@ prefixExpr :: Expr
 
 primExpr :: Expr
   = "' [\"\'] charLit* [\"\'] '" { Terminals ($1=='\"') ($3=='\"') $2 }
-  / "[^' range* ']"              { TerminalCmp $1 }
-  / "['  range* ']"              { TerminalSet $1 }
+  / "[' range* ']"               { TerminalSet $1 }
   / "."                          { TerminalAny    }
   / ident                        { NonTerminal $1 }
-  / "(" expr "," expr ")"        { SepBy  $1 $2   }
-  / "(" expr ";" expr ")"        { SepBy1 $1 $2   }
   / "(" expr ")"
 
 charLit :: Char
-  = '\\' escChar
-  / ![\'\"] .
+  = '\\' escChar / !'\"' .
 
 escChar :: Char
   = '\n' { '\n' }
@@ -63,13 +50,8 @@ escChar :: Char
   / 'x' hexDigit hexDigit { chr . fst . head . readHex $ [$1, $2] }
 
 range :: CharRange
-  = rchar '-' rchar { CharRange $1 $2 }
-  / rchar           { CharOne $1 }
-
-rchar :: Char
-  = '\\' escChar
-  / '\\\]' {']'} / '\\[' { '[' } / '\\^' { '^' } / '\\-' { '-' }
-  / [^\\]]
+  = [^\]] '-' [^\]] { CharRange $1 $2 }
+  / [^\]]           { CharOne $1 }
 
 haskellType :: HaskellType
   = [^=]+
@@ -96,11 +78,7 @@ comment :: ()
   = lineComment / regionComment
 
 lineComment :: ()
-  = '--' (!'\n' .)* '\n' { () }
+  = '--' (!'\n' .)* { () }
 
 regionComment :: ()
   = '{-' (regionComment / !'-}' . { () } )* '-}' { () }
-|]
-
-main :: IO ()
-main = print . runParser syntax "<stdin>" =<< getContents

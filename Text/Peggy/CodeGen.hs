@@ -83,6 +83,8 @@ generate defs = do
 
     TerminalSet rs ->
       [| satisfy $(genRanges rs) |]
+    TerminalCmp rs ->
+      [| satisfy $ not . $(genRanges rs) |]
     TerminalAny ->
       [| anyChar |]
     NonTerminal nont ->

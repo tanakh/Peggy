@@ -18,6 +18,7 @@ data Definition
 data Expr
   = Terminals Bool Bool String
   | TerminalSet [CharRange]
+  | TerminalCmp [CharRange]
   | TerminalAny
   | NonTerminal Identifier
   | Empty
@@ -29,6 +30,9 @@ data Expr
   | Optional Expr
   | And      Expr
   | Not      Expr
+    
+  | SepBy  Expr Expr
+  | SepBy1 Expr Expr
     
   | Semantic Expr CodeFragment
   deriving (Show)

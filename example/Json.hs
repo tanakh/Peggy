@@ -36,23 +36,13 @@ number :: Double
   / "' [0]          '" { 0.0 }
 
 object :: JSON
-  = "{" members "}" { JSONObject $1 }
-  / "{" "}"         { JSONObject [] }
-
-members :: [(String, JSON)]
-  = pair "," members { $1 : $2 }
-  / pair             { [$1] }
+  = "{" (pair, ",") "}" { JSONObject $1 }
 
 pair :: (String, JSON)
   = jsstring ":" value
 
 array :: JSON
-  = "[" elements "]" { JSONArray $1 }
-  / "[" "]"          { JSONArray [] }
-
-elements :: [JSON]
-  = value "," elements { $1 : $2 }
-  / value              { [$1] }
+  = "[" (value, ",") "]" { JSONArray $1 }
 
 skip :: () = [ \n\r\t] { () }
 |]

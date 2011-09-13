@@ -52,9 +52,12 @@ prefixExpr =
 primExpr :: Parser Expr
 primExpr =
   terminals <|>
-  (TerminalSet <$> set) <|>
+  (TerminalCmp <$> set "[^") <|>
+  (TerminalSet <$> set "[") <|>
   (TerminalAny <$ symbol ".") <|>
   (NonTerminal <$> identifier) <|>
+  try (SepBy  <$ symbol "(" <*> expr <* symbol "," <*> expr <* symbol ")") <|>
+  try (SepBy1 <$ symbol "(" <*> expr <* symbol ";" <*> expr <* symbol ")") <|>
   symbol "(" *> expr <* symbol ")"
   <?> "primitive expression"
 
@@ -80,8 +83,8 @@ escChar =
   ('\'' <$ char '\'') <|>
   (chr . fst . head . readHex <$ char 'x' <*> count 2 hexDigit)
 
-set :: Parser [CharRange]
-set = symbol "[" *> many range <* char ']'
+set :: String -> Parser [CharRange]
+set st = lexeme $ string st *> many range <* char ']'
 
 range :: Parser CharRange
 range =
@@ -89,7 +92,12 @@ range =
   (CharOne <$> rchar)
   where
     rchar = escaped <|> noneOf "]"
-    escaped = char '\\' >> (escChar <|> (']' <$ char ']'))
+    escaped =
+      char '\\' >>
+      (escChar <|> 
+       (']' <$ char ']') <|>
+       ('^' <$ char '^') <|>
+       ('-' <$ char '-'))
 
 haskellType :: Parser HaskellType
 haskellType = some (noneOf "=")

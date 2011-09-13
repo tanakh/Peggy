@@ -1,5 +1,6 @@
 module Text.Peggy.Quote (
   peggy,
+  peggy_f,
   ) where
 
 import Language.Haskell.TH
@@ -12,6 +13,9 @@ import Text.Peggy.CodeGen
 
 peggy :: QuasiQuoter
 peggy = QuasiQuoter { quoteDec = quote, quoteExp = undefined, quotePat = undefined, quoteType = undefined }
+
+peggy_f :: QuasiQuoter
+peggy_f = quoteFile peggy
 
 quote :: String -> Q [Dec]
 quote txt = do
