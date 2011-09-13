@@ -26,14 +26,14 @@ value :: JSON
   / "null"   { JSONNull }
 
 jsstring :: String
-  = "\"" jschar* "\""
+  = "\"' jschar* '\""
 
 jschar :: Char
-  = !"\"" [0-9a-zA-Z]
+  = !'\"' [0-9a-zA-Z]
 
 number :: Double
-  = [1-9] [0-9]* { read ($1 : $2) }
-  / [0]          { 0.0 }
+  = "' [1-9] [0-9]* '" { read ($1 : $2) }
+  / "' [0]          '" { 0.0 }
 
 object :: JSON
   = "{" members "}" { JSONObject $1 }
@@ -53,6 +53,8 @@ array :: JSON
 elements :: [JSON]
   = value "," elements { $1 : $2 }
   / value              { [$1] }
+
+skip :: () = [ \n\r\t] { () }
 |]
 
 main :: IO ()

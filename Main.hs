@@ -8,6 +8,8 @@ import Text.Peggy.Quote
 [peggy|
 -- Simple Arithmetic Expression Parser
 
+top :: Double = expr !.
+
 expr :: Double
   = expr "+" fact { $1 + $2 }
   / expr "-" fact { $1 - $2 }
@@ -23,8 +25,10 @@ term :: Double
   / number
 
 number :: Double
-  = [1-9] [0-9]* { read ($1 : $2) }
+  = "' [1-9] [0-9]* '" { read ($1 : $2) }
+
+skip :: () = [ \r\n\t] { () }
 |]
 
 main :: IO ()
-main = print . runParser expr "<stdin>" =<< getContents
+main = print . runParser top "<stdin>" =<< getContents

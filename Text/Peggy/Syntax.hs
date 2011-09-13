@@ -16,7 +16,7 @@ data Definition
   deriving (Show)
 
 data Expr
-  = Terminals String
+  = Terminals Bool Bool String
   | TerminalSet [CharRange]
   | TerminalAny
   | NonTerminal Identifier

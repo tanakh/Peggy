@@ -72,8 +72,15 @@ generate defs = do
       [clause [] (normalB $ genP e) []]]
   
   genP e = case e of
-    Terminals str ->
+    Terminals False False str ->
       [| string str |]
+    Terminals True  False str ->
+      [| many $(varE skip) *> string str |]
+    Terminals False True  str ->
+      [| string str <* many $(varE skip) |]
+    Terminals True True  str ->
+      [| many $(varE skip) *> string str <* many $(varE skip) |]
+
     TerminalSet rs ->
       [| satisfy $(genRanges rs) |]
     TerminalAny ->
@@ -109,6 +116,8 @@ generate defs = do
       [| unexpect $(genP f) |]
 
     where
+      skip = mkName "skip"
+
       genBinds _ [] = []
       genBinds ix (f:fs) =
         if shouldBind f
@@ -120,7 +129,7 @@ generate defs = do
           genBinds ix fs
 
       shouldBind f = case f of
-        Terminals _ -> False
+        Terminals _ _ _ -> False
         And _ -> False
         Not _ -> False
         _ -> True

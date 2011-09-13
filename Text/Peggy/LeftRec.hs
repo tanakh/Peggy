@@ -58,10 +58,10 @@ removeLeftRecursion = concatMap remove where
       isLeftRec _
         = False
       
-      hasSemantic (Terminals _) = False
-      hasSemantic (And       _) = False
-      hasSemantic (Not       _) = False
-      hasSemantic _             = True
+      hasSemantic (Terminals _ _ _) = False
+      hasSemantic (And           _) = False
+      hasSemantic (Not           _) = False
+      hasSemantic _                 = True
   
   remove d@(Definition nont _ (NonTerminal nt))
     | nont == nt = error "cannot remove left recursion"

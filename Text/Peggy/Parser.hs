@@ -51,29 +51,34 @@ prefixExpr =
 
 primExpr :: Parser Expr
 primExpr =
-  (Terminals <$> stringLit) <|>
+  terminals <|>
   (TerminalSet <$> set) <|>
   (TerminalAny <$ symbol ".") <|>
   (NonTerminal <$> identifier) <|>
   symbol "(" *> expr <* symbol ")"
   <?> "primitive expression"
 
-stringLit :: Parser String
-stringLit = lexeme (char '\"' *> many charLit <* char '\"')
-  <?> "literal"
+terminals :: Parser Expr
+terminals = lexeme (do
+  b <- oneOf "\"\'"
+  s <- many charLit
+  e <- oneOf "\"\'"
+  return $ Terminals (b=='\"') (e=='\"') s)
+  <?> "terminals"
 
 charLit :: Parser Char
-charLit = escaped <|> noneOf "\"" where
+charLit = escaped <|> noneOf "\"\'" where
   escaped = char '\\' >> escChar
-  
-  escChar =
-    ('\n' <$ char 'n' ) <|>
-    ('\r' <$ char 'r' ) <|>
-    ('\t' <$ char 't' ) <|>
-    ('\\' <$ char '\\') <|>
-    ('\"' <$ char '\"') <|>
-    ('\'' <$ char '\'') <|>
-    (chr . fst . head . readHex <$ char 'x' <*> count 2 hexDigit)
+
+escChar :: Parser Char
+escChar =
+  ('\n' <$ char 'n' ) <|>
+  ('\r' <$ char 'r' ) <|>
+  ('\t' <$ char 't' ) <|>
+  ('\\' <$ char '\\') <|>
+  ('\"' <$ char '\"') <|>
+  ('\'' <$ char '\'') <|>
+  (chr . fst . head . readHex <$ char 'x' <*> count 2 hexDigit)
 
 set :: Parser [CharRange]
 set = symbol "[" *> many range <* char ']'
@@ -83,7 +88,8 @@ range =
   try (CharRange <$> rchar <* char '-' <*> rchar) <|>
   (CharOne <$> rchar)
   where
-    rchar = noneOf "]"
+    rchar = escaped <|> noneOf "]"
+    escaped = char '\\' >> (escChar <|> (']' <$ char ']'))
 
 haskellType :: Parser HaskellType
 haskellType = some (noneOf "=")

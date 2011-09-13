@@ -38,10 +38,10 @@ prefixExpr :: Expr
   / primExpr
 
 primExpr :: Expr
-  = '"' charLit* '"' { Terminals $1 }
-  / '[' range* ']'   { TerminalSet $1 }
-  / "."              { TerminalAny }
-  / ident            { Nonterminal $1 }
+  = "\"' charLit* '\"" { Terminals   $1 }
+  / "[' range* ']"     { TerminalSet $1 }
+  / "."                { TerminalAny    }
+  / ident              { Nonterminal $1 }
   / "(" expr ")"
 
 charLit :: Char
