@@ -26,8 +26,6 @@ term :: Double
 
 number :: Double
   = "' [1-9] [0-9]* '" { read ($1 : $2) }
-
-skip :: () = [ \r\n\t] { () }
 |]
 
 main :: IO ()

@@ -5,7 +5,18 @@ module Text.Peggy.Normalize (
 import Text.Peggy.Syntax
 
 normalize :: Syntax -> Syntax
-normalize = map desugarDef
+normalize = map desugarDef . addSkip
+
+addSkip :: Syntax -> Syntax
+addSkip defs
+  | hasSkip = defs
+  | otherwise = defaultSkipImpl : defs
+  where
+    hasSkip = not $ null [ () | Definition nont _ _ <- defs , nont == "skip" ]
+    
+    defaultSkipImpl =
+      Definition "skip" "()" $
+      Semantic (TerminalSet $ map CharOne " \r\n\t") [ Snippet "()" ]
 
 desugarDef :: Definition -> Definition
 desugarDef (Definition nont typ expr) =

@@ -43,8 +43,6 @@ pair :: (String, JSON)
 
 array :: JSON
   = "[" (value, ",") "]" { JSONArray $1 }
-
-skip :: () = [ \n\r\t] { () }
 |]
 
 main :: IO ()

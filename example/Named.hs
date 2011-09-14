@@ -9,8 +9,6 @@ test :: Int
 
 foo :: Int
   = s:[0-9]+ { read s }
-
-skip :: () = [ \r\n\t] {()}
 |]
 
 main :: IO ()
