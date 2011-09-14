@@ -55,6 +55,8 @@ removeLeftRecursion = concatMap remove where
         = nt == nont
       isLeftRec (Semantic e _)
         = isLeftRec e
+      isLeftRec (Named _ e)
+        = isLeftRec e
       isLeftRec _
         = False
       

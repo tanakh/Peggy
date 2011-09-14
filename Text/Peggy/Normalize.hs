@@ -19,6 +19,8 @@ desugarDef (Definition nont typ expr) =
       NonTerminal {} -> e
       Empty -> e
       
+      Named name f -> Named name $ desugar f
+      
       Sequence es -> Sequence $ map desugar es
       Choice es -> Choice $ map desugar es
       Many f -> Many $ desugar f

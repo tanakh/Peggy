@@ -117,16 +117,24 @@ generate defs = do
     Not f ->
       [| unexpect $(genP f) |]
 
+    -- these are removed normalized phase
+    SepBy  {} -> error "internal desugar error"
+    SepBy1 {} -> error "internal desugar error"
+
+    Named {} -> error "named expr must has semantic."
+
     where
       skip = mkName "skip"
 
       genBinds _ [] = []
-      genBinds ix (f:fs) =
-        if shouldBind f
-        then
+      genBinds ix (f:fs) = case f of
+        Named name g ->
+          bindS (asP (mkName name) $ varP $ mkName (var ix)) (genP g) :
+          genBinds (ix+1) fs
+        _ | shouldBind f ->
           bindS (varP $ mkName $ var ix) (genP f) :
           genBinds (ix+1) fs
-        else
+        _ ->
           noBindS (genP f) :
           genBinds ix fs
 

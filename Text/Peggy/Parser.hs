@@ -33,9 +33,14 @@ semanticExpr = sequenceExpr >>= \e ->
     Semantic e <$> (symbol "{" *> codeFragment <* symbol "}")
 
 sequenceExpr :: Parser Expr
-sequenceExpr = some (try (suffixExpr <* notFollowedBy (symbol "::" <|> symbol "="))) >>= \es -> case es of
+sequenceExpr = some (try (namedExpr <* notFollowedBy (symbol "::" <|> symbol "="))) >>= \es -> case es of
   [e] -> pure e
   _ -> pure $ Sequence es
+
+namedExpr :: Parser Expr
+namedExpr =
+  try (Named <$> identifier <* symbol ":" <*> suffixExpr) <|>
+  suffixExpr
 
 suffixExpr :: Parser Expr
 suffixExpr = prefixExpr >>= go where

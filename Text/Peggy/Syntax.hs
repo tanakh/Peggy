@@ -22,6 +22,8 @@ data Expr
   | TerminalAny
   | NonTerminal Identifier
   | Empty
+    
+  | Named Identifier Expr
   
   | Sequence [Expr]
   | Choice   [Expr]
