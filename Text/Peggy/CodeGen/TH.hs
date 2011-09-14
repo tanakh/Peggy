@@ -1,7 +1,7 @@
 {-# Language TemplateHaskell #-}
 {-# Language TupleSections #-}
 
-module Text.Peggy.CodeGen (
+module Text.Peggy.CodeGen.TH (
   genCode,
   removeLeftRecursion,
   ) where
@@ -9,7 +9,7 @@ module Text.Peggy.CodeGen (
 import Control.Applicative
 import Language.Haskell.Meta
 import Language.Haskell.TH
-import Text.Peggy
+import Text.Peggy.Prim
 import Text.Peggy.Syntax
 import Text.Peggy.SrcLoc
 import Text.Peggy.Normalize

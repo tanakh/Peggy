@@ -19,10 +19,11 @@ Cabal-version:       >=1.8
 
 Library
   Exposed-modules:     Text.Peggy
-                     , Text.Peggy.CodeGen
+                     , Text.Peggy.CodeGen.TH
                      , Text.Peggy.LeftRec
                      , Text.Peggy.Normalize
                      , Text.Peggy.Parser
+                     , Text.Peggy.Prim
                      , Text.Peggy.Quote
                      , Text.Peggy.SrcLoc
                      , Text.Peggy.Syntax

@@ -1,8 +1,6 @@
 {-# Language QuasiQuotes #-}
 
 import Text.Peggy
-import Text.Peggy.SrcLoc
-import Text.Peggy.Quote
 
 [peggy|
 program :: ()

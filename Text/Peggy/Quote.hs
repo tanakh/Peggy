@@ -9,7 +9,7 @@ import Text.Parsec
 import Text.Parsec.Pos
 
 import Text.Peggy.Parser
-import Text.Peggy.CodeGen
+import Text.Peggy.CodeGen.TH
 
 peggy :: QuasiQuoter
 peggy = QuasiQuoter { quoteDec = quote, quoteExp = undefined, quotePat = undefined, quoteType = undefined }

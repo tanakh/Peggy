@@ -1,7 +1,6 @@
 {-# Language QuasiQuotes #-}
 
 import Text.Peggy
-import Text.Peggy.Quote
 
 [peggy|
 test :: Int

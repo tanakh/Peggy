@@ -3,7 +3,6 @@
 module Main (main) where
 
 import Text.Peggy
-import Text.Peggy.Quote
 
 [peggy|
 -- Simple Arithmetic Expression Parser
