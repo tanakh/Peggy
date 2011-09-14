@@ -1,5 +1,8 @@
 {-# Language QuasiQuotes #-}
 
+import Control.Monad
+import Data.Char
+import Numeric
 import Text.Peggy
 
 data JSON
@@ -12,8 +15,20 @@ data JSON
   deriving (Show)
 
 [peggy|
+jsons :: [JSON]
+  = json* !.
+ 
 json :: JSON
   = object / array
+
+object :: JSON
+  = "{" (pair, ",") "}" { JSONObject $1 }
+
+pair :: (String, JSON)
+  = jsstring ":" value
+
+array :: JSON
+  = "[" (value, ",") "]" { JSONArray $1 }
 
 value :: JSON
   = jsstring { JSONString $1 }
@@ -28,21 +43,26 @@ jsstring :: String
   = "\"' jschar* '\""
 
 jschar :: Char
-  = !'\"' [0-9a-zA-Z]
+  = '\\' escChar / [^\"\\\]
+
+escChar :: Char
+  = '\"' { '\"' }
+  / '\\' { '\\' }
+  / '/' { '/' }
+  / 'b' { '\b' }
+  / 'f' { '\f' }
+  / 'n' { '\n' }
+  / 'r' { '\r' }
+  / 't' { '\t' }
+  / 'u' hex hex hex hex { chr $ fst $ head $ readHex [$1, $2, $3, $4] }
+
+hex :: Char = [0-9a-zA-Z]
 
 number :: Double
   = "' [1-9] [0-9]* '" { read ($1 : $2) }
   / "' [0]          '" { 0.0 }
-
-object :: JSON
-  = "{" (pair, ",") "}" { JSONObject $1 }
-
-pair :: (String, JSON)
-  = jsstring ":" value
-
-array :: JSON
-  = "[" (value, ",") "]" { JSONArray $1 }
 |]
 
 main :: IO ()
-main = print . runParser json "<stdin>" =<< getContents
+main =
+  forever $ print . runParser jsons "<stdin>" =<< getLine
