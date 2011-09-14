@@ -109,6 +109,14 @@ instance MonadError ParseError (Parser d) where
 
 --
 
+backtrack :: Derivs d => Parser d a -> Parser d a
+backtrack (Parser p) = Parser $ \d ->
+  case p d of
+    Parsed _ r ->
+      Parsed d r
+    Failed e ->
+      Failed e
+
 getPos :: Derivs d => Parser d SrcPos
 getPos = Parser $ \d ->
   Parsed d (dvPos d)
@@ -130,17 +138,9 @@ string :: Derivs d => String -> Parser d String
 string = mapM char
 
 expect :: Derivs d => Parser d a -> Parser d ()
-expect (Parser p) = Parser $ \d ->
-  case p d of
-    Parsed _ _ ->
-      Parsed d ()
-    Failed _ ->
-      Failed nullError
+expect p = backtrack $ () <$ p
 
 unexpect :: Derivs d => Parser d a -> Parser d ()
-unexpect (Parser p) = Parser $ \d ->
-  case p d of
-    Parsed _ _ ->
-      Failed nullError
-    Failed _ ->
-      Parsed d ()
+unexpect p = backtrack $ do
+  b <- catchError (True <$ p) (\_ -> pure False)
+  when b $ throwError nullError
