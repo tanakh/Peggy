@@ -9,6 +9,9 @@ module Text.Peggy.Prim (
   runParser,
   
   getPos,
+  parseError,
+  backtrack,
+  annot,
   
   anyChar,
   satisfy,
@@ -21,15 +24,22 @@ module Text.Peggy.Prim (
   optional,
   expect,
   unexpect,
+  
+  space,
   ) where
 
 import Control.Applicative
 import Control.Monad.State
 import Control.Monad.Error
+import Data.Char
 
 import Text.Peggy.SrcLoc
 
-newtype Parser d a = Parser { unParser :: d -> Result d a }
+newtype Parser d a
+  = Parser
+    { -- annotation :: String
+      unParser :: d -> Result d a
+    }
 
 data ParseError = ParseError SrcLoc String
   deriving (Show)
@@ -77,7 +87,7 @@ instance Applicative (Parser d) where
         Failed err
 
 instance Monad (Parser d) where
-  return a = Parser $ \d -> Parsed d a
+  return = pure
   
   Parser p >>= f = Parser $ \d -> 
     case p d of
@@ -117,9 +127,19 @@ backtrack (Parser p) = Parser $ \d ->
     Failed e ->
       Failed e
 
+annot :: Derivs d => String -> Parser d a -> Parser d a
+annot ann p = p -- Parser ann (unParser p)
+
 getPos :: Derivs d => Parser d SrcPos
 getPos = Parser $ \d ->
   Parsed d (dvPos d)
+
+parseError :: Derivs d => String -> Parser d a
+parseError msg = do
+  pos <- getPos
+  throwError $ ParseError (LocPos pos) msg
+
+-----
 
 anyChar :: Derivs d => Parser d Char
 anyChar = Parser dvChar
@@ -132,10 +152,16 @@ satisfy p = do
   return c
 
 char :: Derivs d => Char -> Parser d Char
-char c = satisfy (== c)
+char c = annot (show c) $
+  satisfy (== c)
+  `catchError` 
+  (const $ parseError $ "expect " ++ show c)
 
 string :: Derivs d => String -> Parser d String
-string = mapM char
+string str = annot (show str) $
+  mapM char str
+  `catchError`
+  (const $ parseError $ "expect " ++ show str)
 
 expect :: Derivs d => Parser d a -> Parser d ()
 expect p = backtrack $ () <$ p
@@ -143,4 +169,9 @@ expect p = backtrack $ () <$ p
 unexpect :: Derivs d => Parser d a -> Parser d ()
 unexpect p = backtrack $ do
   b <- catchError (True <$ p) (\_ -> pure False)
-  when b $ throwError nullError
+  when b $ parseError $ "unexpect " -- ++ annotation p
+
+-----
+
+space :: Derivs d => Parser d ()
+space = () <$ satisfy isSpace

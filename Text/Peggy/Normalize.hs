@@ -15,8 +15,7 @@ addSkip defs
     hasSkip = not $ null [ () | Definition nont _ _ <- defs , nont == "skip" ]
     
     defaultSkipImpl =
-      Definition "skip" "()" $
-      Semantic (TerminalSet $ map CharOne " \r\n\t") [ Snippet "()" ]
+      Definition "skip" "()" $ Primitive "space"
 
 desugarDef :: Definition -> Definition
 desugarDef (Definition nont typ expr) =
@@ -28,6 +27,7 @@ desugarDef (Definition nont typ expr) =
       TerminalCmp {} -> e
       TerminalAny {} -> e
       NonTerminal {} -> e
+      Primitive {} -> e
       Empty -> e
       
       Named name f -> Named name $ desugar f

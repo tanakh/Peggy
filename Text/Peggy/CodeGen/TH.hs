@@ -49,7 +49,7 @@ generate defs = do
             (normalB [| Parsed (parse ($(varE pos) `advance` $(varE c)) $(varE cs)) $(varE c) |])
             []
           , match wildP
-            (normalB [| Failed $ ParseError (LocPos $ dvPos $(varE d)) "" |])
+            (normalB [| Failed $ ParseError (LocPos $ dvPos $(varE d)) "unexpected EOF" |])
             []
           ])
          []
@@ -69,7 +69,7 @@ generate defs = do
   gen (Definition nont typ e) =
     [ sigD (mkName nont) [t| Parser $(conT derivsName) $(parseType' typ) |]
     , funD (mkName nont)
-      [clause [] (normalB $ genP e) []]]
+      [clause [] (normalB [| annot $(litE (stringL nont)) $(genP e) |]) []]]
   
   genP e = case e of
     Terminals False False str ->
@@ -89,6 +89,8 @@ generate defs = do
       [| anyChar |]
     NonTerminal nont ->
       [| Parser $(varE $ mkName $ "udv_" ++ nont) |]
+    Primitive name ->
+      [| $(varE $ mkName $ name) |]
     Empty ->
       [| return () |]
 

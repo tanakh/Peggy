@@ -21,6 +21,7 @@ data Expr
   | TerminalCmp [CharRange]
   | TerminalAny
   | NonTerminal Identifier
+  | Primitive Identifier
   | Empty
     
   | Named Identifier Expr
