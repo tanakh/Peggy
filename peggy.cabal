@@ -24,12 +24,14 @@ Library
                      , Text.Peggy.Normalize
                      , Text.Peggy.Parser
                      , Text.Peggy.Prim
+                     , Text.Peggy.PrimST
                      , Text.Peggy.Quote
                      , Text.Peggy.SrcLoc
                      , Text.Peggy.Syntax
   
   Build-depends:       base >= 4 && < 5
                      , mtl >= 2.0 && < 2.1
+                     , hashtables >= 1.0 && < 1.1
                      , monad-control >= 0.2 && < 0.3
                      , parsec >= 3.1 && < 3.2
                      , template-haskell >= 2.5 && < 2.7
