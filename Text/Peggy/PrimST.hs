@@ -1,4 +1,5 @@
 {-# Language MultiParamTypeClasses #-}
+{-# Language FlexibleContexts #-}
 
 module Text.Peggy.PrimST (
   Parser(..),
@@ -19,14 +20,15 @@ import Control.Applicative
 import Control.Monad.ST
 import Control.Monad.Error
 import Data.HashTable.ST.Basic as HT
+import qualified Data.ListLike as LL
 
 import Text.Peggy.SrcLoc
 
-newtype Parser t s a
-  = Parser { unParser :: t s -> SrcPos -> String -> ST s (Result a) }
+newtype Parser tbl str s a
+  = Parser { unParser :: tbl s -> SrcPos -> str -> ST s (Result str a) }
 
-data Result a
-  = Parsed SrcPos String a
+data Result str a
+  = Parsed SrcPos str a
   | Failed ParseError
 
 data ParseError
@@ -38,10 +40,10 @@ instance Error ParseError
 nullError :: ParseError
 nullError = ParseError (LocPos $ SrcPos "" 0 1 1) ""
 
-class MemoTable t where
-  newTable :: ST s (t s)
+class MemoTable tbl where
+  newTable :: ST s (tbl s)
 
-instance Monad (Parser t s) where
+instance Monad (Parser tbl str s) where
   return v = Parser $ \_ pos s -> return $ Parsed pos s v
   p >>= f = Parser $ \tbl pos s -> do
     res <- unParser p tbl pos s
@@ -51,17 +53,17 @@ instance Monad (Parser t s) where
       Failed err ->
         return $ Failed err
 
-instance Functor (Parser t s) where
+instance Functor (Parser tbl str s) where
   fmap f p = return . f =<< p
 
-instance Applicative (Parser t s) where
+instance Applicative (Parser tbl str s) where
   pure = return
   p <*> q = do
     f <- p
     x <- q
     return $ f x
 
-instance MonadError ParseError (Parser t s) where
+instance MonadError ParseError (Parser tbl str s) where
   throwError err = Parser $ \_ _ _ -> return $ Failed err
   catchError p h = Parser $ \tbl pos s -> do
     res <- unParser p tbl pos s
@@ -69,11 +71,13 @@ instance MonadError ParseError (Parser t s) where
       Parsed {} -> return res
       Failed err -> unParser (h err) tbl pos s
 
-instance Alternative (Parser t s) where
+instance Alternative (Parser tbl str s) where
   empty = throwError nullError
   p <|> q = catchError p (const q)
 
-memo :: (t s -> HT.HashTable s Int (Result a)) -> Parser t s a -> Parser t s a
+memo :: (tbl s -> HT.HashTable s Int (Result str a))
+        -> Parser tbl str s a 
+        -> Parser tbl str s a
 memo ft p = Parser $ \tbl pos@(SrcPos _ n _ _) s -> do
   cache <- HT.lookup (ft tbl) n
   case cache of
@@ -83,7 +87,10 @@ memo ft p = Parser $ \tbl pos@(SrcPos _ n _ _) s -> do
       HT.insert (ft tbl) n v
       return v
 
-parse :: MemoTable t => Parser t s a -> String -> ST s (Either ParseError a)
+parse :: MemoTable tbl
+         => Parser tbl str s a 
+         -> str
+         -> ST s (Either ParseError a)
 parse p str = do
   tbl <- newTable
   res <- unParser p tbl (SrcPos "<input>" 0 1 1) str
@@ -91,19 +98,23 @@ parse p str = do
     Parsed _ _ ret -> return $ Right ret
     Failed err -> return $ Left err
 
-anyChar :: Parser t s Char
-anyChar = Parser $ \_ pos str -> case str of
-  (c:cs) -> return $ Parsed (pos `advance` c) cs c
-  _ -> return $ Failed nullError
+anyChar :: LL.ListLike str Char => Parser tbl str s Char
+anyChar = Parser $ \_ pos str ->
+  if LL.null str
+  then return $ Failed nullError
+  else do
+    let c  = LL.head str
+        cs = LL.tail str
+    return $ Parsed (pos `advance` c) cs c
 
-satisfy :: (Char -> Bool) -> Parser t s Char
+satisfy :: LL.ListLike str Char => (Char -> Bool) -> Parser tbl str s Char
 satisfy p = do
   c <- anyChar
   when (not $ p c) $ throwError nullError
   return c
 
-char :: Char -> Parser t s Char
+char :: LL.ListLike str Char => Char -> Parser tbl str s Char
 char c = satisfy (==c)
 
-string :: String -> Parser t s String
+string :: LL.ListLike str Char => String -> Parser tbl str s String
 string = mapM char
