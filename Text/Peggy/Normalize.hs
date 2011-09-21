@@ -54,3 +54,6 @@ desugarDef (Definition nont typ expr) =
         , Snippet ":"
         , Argument 2
         ]
+      
+      Token f ->
+        Token $ desugar f

@@ -36,6 +36,7 @@ data Expr
     
   | SepBy  Expr Expr
   | SepBy1 Expr Expr
+  | Token  Expr
     
   | Semantic Expr CodeFragment
   deriving (Show)

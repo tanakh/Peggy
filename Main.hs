@@ -24,8 +24,8 @@ term :: Double
   = "(" expr ")"
   / number
 
-number :: Double
-  = "' [1-9] [0-9]* '" { read ($1 : $2) }
+number ::: Double
+  = [1-9] [0-9]* { read ($1 : $2) }
 |]
 
 main :: IO ()

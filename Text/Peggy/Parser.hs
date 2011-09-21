@@ -15,7 +15,8 @@ syntax = many definition <* skips <* eof
 
 definition :: Parser Definition
 definition =
-  Definition <$> identifier <* symbol "::" <*> haskellType <* symbol "=" <*> expr
+  try (Definition <$> identifier <* symbol ":::" <*> haskellType <* symbol "=" <*> (Token <$> expr)) <|>
+  (Definition <$> identifier <* symbol "::" <*> haskellType <* symbol "=" <*> expr)
   <?> "definition"
 
 expr :: Parser Expr

@@ -117,6 +117,9 @@ generate defs = do
     Not f ->
       [| unexpect $(genP f) |]
 
+    Token f ->
+      [| many $(varE skip) *> $(genP f) <* many $(varE skip) |]
+
     -- these are removed normalized phase
     SepBy  {} -> error "internal desugar error"
     SepBy1 {} -> error "internal desugar error"

@@ -43,8 +43,8 @@ value :: JSON
   / "false"  { JSONBool False }
   / "null"   { JSONNull }
 
-jsstring :: String
-  = "\"' jschar* '\""
+jsstring ::: String
+  = '\"' jschar* '\"'
 
 jschar :: Char
   = '\\' escChar / [^\"\\\]
@@ -62,15 +62,13 @@ escChar :: Char
 
 hex :: Char = [0-9a-zA-Z]
 
-number :: Double
-  = "' [1-9] [0-9]* '" { read ($1 : $2) }
-  / "' [0]          '" { 0.0 }
+number ::: Double
+  = [1-9] [0-9]* { read ($1 : $2) }
+  / [0]          { 0.0 }
 |]
 
 main :: IO ()
 main =
   forever $ do
     line <- B.getLine
-    case parse jsons $ LL.CS line of
-      Left _ -> putStrLn "err"
-      Right _ -> putStrLn "ok"
+    print . parse json $ LL.CS line
