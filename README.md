@@ -43,15 +43,19 @@ Here is an example of parsing arithmetic expressions.
     import Text.Peggy
     
     [peggy|
-    exp  = exp "+" fact    { $1 + $2 }
-         / exp "-" fact    { $1 - $2 }
-         / fact
-    fact = fact "*" term   { $1 * $2 }
-         / fact "/" term   { $1 / $2 }
-         / term
-    term = "(" exp ")"
-         / number
-    number = ([1-9][0-9]*) { read $1 }
+    exp :: Double
+      = exp "+" fact  { $1 + $2 }
+      / exp "-" fact  { $1 - $2 }
+      / fact
+    fact :: Double
+      = fact "*" term { $1 * $2 }
+      / fact "/" term { $1 / $2 }
+      / term
+    term :: Double
+      = "(" exp ")"
+      / number
+    number ::: Double
+      = ([1-9][0-9]*) { read $1 }
     |]
     
     main :: IO ()
