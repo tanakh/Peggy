@@ -71,4 +71,6 @@ main :: IO ()
 main =
   forever $ do
     line <- B.getLine
-    print . parse jsons $ LL.CS line
+    case parse jsons $ LL.CS line of
+      Left _ -> putStrLn "err"
+      Right _ -> putStrLn "ok"

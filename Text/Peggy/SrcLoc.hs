@@ -6,16 +6,16 @@ module Text.Peggy.SrcLoc (
   ) where
 
 data SrcLoc
-  = LocPos  SrcPos
-  | LocSpan SrcPos SrcPos
+  = LocPos  !SrcPos
+  | LocSpan !SrcPos !SrcPos
   deriving (Show)
 
 data SrcPos =
   SrcPos
-  { locFile :: FilePath
-  , locAbs  :: !Int
-  , locLine :: !Int
-  , locCol  :: !Int
+  { locFile :: !FilePath
+  , locAbs  :: {-# UNPACK #-} !Int
+  , locLine :: {-# UNPACK #-} !Int
+  , locCol  :: {-# UNPACK #-} !Int
   }
   deriving (Show)
 
