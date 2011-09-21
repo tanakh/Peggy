@@ -1,8 +1,7 @@
 {-# Language QuasiQuotes #-}
 {-# Language FlexibleContexts #-}
 
-import Text.Peggy.Quote
-import Text.Peggy.PrimST
+import Text.Peggy
 
 [peggy|
 skip :: String = 'a'

@@ -6,8 +6,7 @@ import qualified Data.ByteString as B
 import Data.Char
 import qualified Data.ListLike as LL
 import Numeric
-import Text.Peggy.Quote
-import Text.Peggy.PrimST
+import Text.Peggy
 
 data JSON
   = JSONString String
