@@ -40,6 +40,8 @@ unnun, kannun...
 Here is an example of parsing arithmetic expressions.
 
     {-# QuasiQuotes #-}
+    {-# Language FlexibleContexts #-}
+    
     import Text.Peggy
     
     [peggy|
@@ -60,6 +62,6 @@ Here is an example of parsing arithmetic expressions.
     
     main :: IO ()
     main =
-      print =<< parse exp =<< getContents
+      print . parse exp =<< getContents
 
 ...
