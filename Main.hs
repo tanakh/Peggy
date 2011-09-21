@@ -1,4 +1,5 @@
 {-# Language QuasiQuotes #-}
+{-# Language FlexibleContexts #-}
 
 module Main (main) where
 
@@ -28,4 +29,4 @@ number :: Double
 |]
 
 main :: IO ()
-main = print . runParser top "<stdin>" =<< getContents
+main = print . parse top =<< getContents

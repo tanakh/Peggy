@@ -1,5 +1,6 @@
 {-# Language MultiParamTypeClasses #-}
 {-# Language FlexibleContexts #-}
+{-# Language RankNTypes #-}
 
 module Text.Peggy.PrimST (
   Parser(..),
@@ -14,11 +15,17 @@ module Text.Peggy.PrimST (
   satisfy,
   char,
   string,
+  
+  expect,
+  unexpect,
+  
+  space,
   ) where
 
 import Control.Applicative
 import Control.Monad.ST
 import Control.Monad.Error
+import Data.Char
 import Data.HashTable.ST.Basic as HT
 import qualified Data.ListLike as LL
 
@@ -88,10 +95,10 @@ memo ft p = Parser $ \tbl pos@(SrcPos _ n _ _) s -> do
       return v
 
 parse :: MemoTable tbl
-         => Parser tbl str s a 
+         => (forall s . Parser tbl str s a)
          -> str
-         -> ST s (Either ParseError a)
-parse p str = do
+         -> Either ParseError a
+parse p str = runST $ do
   tbl <- newTable
   res <- unParser p tbl (SrcPos "<input>" 0 1 1) str
   case res of
@@ -118,3 +125,23 @@ char c = satisfy (==c)
 
 string :: LL.ListLike str Char => String -> Parser tbl str s String
 string = mapM char
+
+expect :: LL.ListLike str Char => Parser tbl str s a -> Parser tbl str s ()
+expect p = do
+  b <- test p
+  when (not b) $ throwError nullError
+
+unexpect :: LL.ListLike str Char => Parser tbl str s a -> Parser tbl str s ()
+unexpect p = do
+  b <- test p
+  when b $ throwError nullError
+
+test :: LL.ListLike str Char => Parser tbl str s a -> Parser tbl str s Bool
+test p = Parser $ \tbl pos str -> do
+  res <- unParser p tbl pos str
+  return $ case res of
+    Parsed _ _ _ -> Parsed pos str True
+    Failed _ -> Parsed pos str False
+
+space :: LL.ListLike str Char => Parser tbl str s ()
+space = () <$ satisfy isSpace

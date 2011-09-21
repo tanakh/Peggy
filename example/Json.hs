@@ -1,9 +1,13 @@
 {-# Language QuasiQuotes #-}
+{-# Language FlexibleContexts #-}
 
 import Control.Monad
+import qualified Data.ByteString as B
 import Data.Char
+import qualified Data.ListLike as LL
 import Numeric
-import Text.Peggy
+import Text.Peggy.Quote
+import Text.Peggy.PrimST
 
 data JSON
   = JSONString String
@@ -65,4 +69,6 @@ number :: Double
 
 main :: IO ()
 main =
-  forever $ print . runParser jsons "<stdin>" =<< getLine
+  forever $ do
+    line <- B.getLine
+    print . parse jsons $ LL.CS line
