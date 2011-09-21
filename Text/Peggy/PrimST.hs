@@ -105,6 +105,13 @@ parse p str = runST $ do
     Parsed _ _ ret -> return $ Right ret
     Failed err -> return $ Left err
 
+getPos :: Parser tbl str s SrcPos
+getPos = Parser $ \_ pos str -> return $ Parsed pos str pos
+
+parseError :: String -> Parser tbl str s a
+parseError msg =
+  throwError =<< ParseError . LocPos <$> getPos <*> pure msg
+
 anyChar :: LL.ListLike str Char => Parser tbl str s Char
 anyChar = Parser $ \_ pos str ->
   if LL.null str
@@ -117,24 +124,24 @@ anyChar = Parser $ \_ pos str ->
 satisfy :: LL.ListLike str Char => (Char -> Bool) -> Parser tbl str s Char
 satisfy p = do
   c <- anyChar
-  when (not $ p c) $ throwError nullError
+  when (not $ p c) $ parseError "unexpected input"
   return c
 
 char :: LL.ListLike str Char => Char -> Parser tbl str s Char
-char c = satisfy (==c)
+char c = satisfy (==c) <|> parseError ("expect " ++ show c)
 
 string :: LL.ListLike str Char => String -> Parser tbl str s String
-string = mapM char
+string str = mapM char str <|> parseError ("expect " ++ show str)
 
 expect :: LL.ListLike str Char => Parser tbl str s a -> Parser tbl str s ()
 expect p = do
   b <- test p
-  when (not b) $ throwError nullError
+  when (not b) $ parseError "unexpected input"
 
 unexpect :: LL.ListLike str Char => Parser tbl str s a -> Parser tbl str s ()
 unexpect p = do
   b <- test p
-  when b $ throwError nullError
+  when b $ parseError "unexpected input"
 
 test :: LL.ListLike str Char => Parser tbl str s a -> Parser tbl str s Bool
 test p = Parser $ \tbl pos str -> do
