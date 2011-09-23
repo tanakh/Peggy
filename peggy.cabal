@@ -24,7 +24,6 @@ Library
                      , Text.Peggy.Normalize
                      , Text.Peggy.Parser
                      , Text.Peggy.Prim
-                     , Text.Peggy.PrimST
                      , Text.Peggy.Quote
                      , Text.Peggy.SrcLoc
                      , Text.Peggy.Syntax

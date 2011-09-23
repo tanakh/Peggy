@@ -13,7 +13,7 @@ import qualified Data.HashTable.ST.Basic as HT
 import qualified Data.ListLike as LL
 import Language.Haskell.Meta
 import Language.Haskell.TH
-import Text.Peggy.PrimST
+import Text.Peggy.Prim
 import Text.Peggy.Syntax
 import Text.Peggy.SrcLoc
 import Text.Peggy.Normalize

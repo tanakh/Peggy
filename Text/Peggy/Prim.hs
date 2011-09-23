@@ -1,27 +1,21 @@
-{-# Language GeneralizedNewtypeDeriving #-}
 {-# Language MultiParamTypeClasses #-}
+{-# Language FlexibleContexts #-}
+{-# Language RankNTypes #-}
 
 module Text.Peggy.Prim (
   Parser(..),
-  ParseError(..),
   Result(..),
-  Derivs(..),
-  runParser,
+  ParseError(..),
+  MemoTable(..),
   
-  getPos,
-  parseError,
-  backtrack,
-  annot,
+  memo,
+  parse,
   
   anyChar,
   satisfy,
   char,
   string,
-  empty,
-  (<|>),
-  many,
-  some,
-  optional,
+  
   expect,
   unexpect,
   
@@ -29,149 +23,132 @@ module Text.Peggy.Prim (
   ) where
 
 import Control.Applicative
-import Control.Monad.State
+import Control.Monad.ST
 import Control.Monad.Error
 import Data.Char
+import Data.HashTable.ST.Basic as HT
+import qualified Data.ListLike as LL
 
 import Text.Peggy.SrcLoc
 
-newtype Parser d a
-  = Parser
-    { -- annotation :: String
-      unParser :: d -> Result d a
-    }
+newtype Parser tbl str s a
+  = Parser { unParser :: tbl s -> SrcPos -> str -> ST s (Result str a) }
 
-data ParseError = ParseError SrcLoc String
-  deriving (Show)
-
-nullError :: ParseError
-nullError = ParseError (LocPos (SrcPos "" 0 1 1)) ""
-
-data Result d a
-  = Parsed d a
+data Result str a
+  = Parsed SrcPos str a
   | Failed ParseError
 
-instance Show a => Show (Result d a) where
-  show (Parsed _ a) = "Parsed " ++ show a
-  show (Failed err) = "Failed (" ++ show err ++ ")"
+data ParseError
+  = ParseError SrcLoc String
+  deriving (Show)
 
-class Derivs d where
-  dvPos  :: d -> SrcPos
-  dvChar :: d -> Result d Char
-  parse  :: SrcPos -> String -> d
+instance Error ParseError
 
-runParser :: Derivs d => Parser d a -> String -> String -> Result d a
-runParser p sourceName source =
-  unParser p $ parse (SrcPos sourceName 0 1 1) source
+nullError :: ParseError
+nullError = ParseError (LocPos $ SrcPos "" 0 1 1) ""
 
-instance Functor (Parser d) where
-  fmap f (Parser p) = Parser $ \d ->
-    case p d of
-      Parsed e a ->
-        Parsed e (f a)
+class MemoTable tbl where
+  newTable :: ST s (tbl s)
+
+instance Monad (Parser tbl str s) where
+  return v = Parser $ \_ pos s -> return $ Parsed pos s v
+  p >>= f = Parser $ \tbl pos s -> do
+    res <- unParser p tbl pos s
+    case res of
+      Parsed qos t x ->
+        unParser (f x) tbl qos t
       Failed err ->
-        Failed err
+        return $ Failed err
 
-instance Applicative (Parser d) where
-  pure a = Parser $ \d -> Parsed d a
-  
-  Parser p <*> Parser q = Parser $ \d ->
-    case p d of
-      Parsed e g ->
-        case q e of
-          Parsed f a ->
-            Parsed f (g a)
-          Failed err ->
-            Failed err
-      Failed err ->
-        Failed err
+instance Functor (Parser tbl str s) where
+  fmap f p = return . f =<< p
 
-instance Monad (Parser d) where
-  return = pure
-  
-  Parser p >>= f = Parser $ \d -> 
-    case p d of
-      Parsed e a ->
-        unParser (f a) e
-      Failed err ->
-        Failed err
+instance Applicative (Parser tbl str s) where
+  pure = return
+  p <*> q = do
+    f <- p
+    x <- q
+    return $ f x
 
-instance Derivs d => Alternative (Parser d) where
-  empty =
-    Parser $ \d -> Failed (ParseError (LocPos $ dvPos d) "")
-  Parser p <|> Parser q =
-    Parser $ \d -> 
-    case p d of
-      Parsed e a ->
-        Parsed e a
-      Failed _ ->
-        q d
+instance MonadError ParseError (Parser tbl str s) where
+  throwError err = Parser $ \_ _ _ -> return $ Failed err
+  catchError p h = Parser $ \tbl pos s -> do
+    res <- unParser p tbl pos s
+    case res of
+      Parsed {} -> return res
+      Failed err -> unParser (h err) tbl pos s
 
-instance MonadError ParseError (Parser d) where
-  throwError e = Parser $ \_ ->
-    Failed e
-  catchError (Parser p) h = Parser $ \d ->
-    case p d of
-      Parsed e a ->
-        Parsed e a
-      Failed err ->
-        unParser (h err) d
+instance Alternative (Parser tbl str s) where
+  empty = throwError nullError
+  p <|> q = catchError p (const q)
 
---
+memo :: (tbl s -> HT.HashTable s Int (Result str a))
+        -> Parser tbl str s a 
+        -> Parser tbl str s a
+memo ft p = Parser $ \tbl pos@(SrcPos _ n _ _) s -> do
+  cache <- HT.lookup (ft tbl) n
+  case cache of
+    Just v -> return v
+    Nothing -> do
+      v <- unParser p tbl pos s
+      HT.insert (ft tbl) n v
+      return v
 
-backtrack :: Derivs d => Parser d a -> Parser d a
-backtrack (Parser p) = Parser $ \d ->
-  case p d of
-    Parsed _ r ->
-      Parsed d r
-    Failed e ->
-      Failed e
+parse :: MemoTable tbl
+         => (forall s . Parser tbl str s a)
+         -> str
+         -> Either ParseError a
+parse p str = runST $ do
+  tbl <- newTable
+  res <- unParser p tbl (SrcPos "<input>" 0 1 1) str
+  case res of
+    Parsed _ _ ret -> return $ Right ret
+    Failed err -> return $ Left err
 
-annot :: Derivs d => String -> Parser d a -> Parser d a
-annot ann p = p -- Parser ann (unParser p)
+getPos :: Parser tbl str s SrcPos
+getPos = Parser $ \_ pos str -> return $ Parsed pos str pos
 
-getPos :: Derivs d => Parser d SrcPos
-getPos = Parser $ \d ->
-  Parsed d (dvPos d)
+parseError :: String -> Parser tbl str s a
+parseError msg =
+  throwError =<< ParseError . LocPos <$> getPos <*> pure msg
 
-parseError :: Derivs d => String -> Parser d a
-parseError msg = do
-  pos <- getPos
-  throwError $ ParseError (LocPos pos) msg
+anyChar :: LL.ListLike str Char => Parser tbl str s Char
+anyChar = Parser $ \_ pos str ->
+  if LL.null str
+  then return $ Failed nullError
+  else do
+    let c  = LL.head str
+        cs = LL.tail str
+    return $ Parsed (pos `advance` c) cs c
 
------
-
-anyChar :: Derivs d => Parser d Char
-anyChar = Parser dvChar
-
-satisfy :: Derivs d => (Char -> Bool) -> Parser d Char
+satisfy :: LL.ListLike str Char => (Char -> Bool) -> Parser tbl str s Char
 satisfy p = do
   c <- anyChar
-  when (not $ p c) $
-    throwError nullError
+  when (not $ p c) $ parseError "unexpected input"
   return c
 
-char :: Derivs d => Char -> Parser d Char
-char c = annot (show c) $
-  satisfy (== c)
-  `catchError` 
-  (const $ parseError $ "expect " ++ show c)
+char :: LL.ListLike str Char => Char -> Parser tbl str s Char
+char c = satisfy (==c) <|> parseError ("expect " ++ show c)
 
-string :: Derivs d => String -> Parser d String
-string str = annot (show str) $
-  mapM char str
-  `catchError`
-  (const $ parseError $ "expect " ++ show str)
+string :: LL.ListLike str Char => String -> Parser tbl str s String
+string str = mapM char str <|> parseError ("expect " ++ show str)
 
-expect :: Derivs d => Parser d a -> Parser d ()
-expect p = backtrack $ () <$ p
+expect :: LL.ListLike str Char => Parser tbl str s a -> Parser tbl str s ()
+expect p = do
+  b <- test p
+  when (not b) $ parseError "unexpected input"
 
-unexpect :: Derivs d => Parser d a -> Parser d ()
-unexpect p = backtrack $ do
-  b <- catchError (True <$ p) (\_ -> pure False)
-  when b $ parseError $ "unexpect " -- ++ annotation p
+unexpect :: LL.ListLike str Char => Parser tbl str s a -> Parser tbl str s ()
+unexpect p = do
+  b <- test p
+  when b $ parseError "unexpected input"
 
------
+test :: LL.ListLike str Char => Parser tbl str s a -> Parser tbl str s Bool
+test p = Parser $ \tbl pos str -> do
+  res <- unParser p tbl pos str
+  return $ case res of
+    Parsed _ _ _ -> Parsed pos str True
+    Failed _ -> Parsed pos str False
 
-space :: Derivs d => Parser d ()
+space :: LL.ListLike str Char => Parser tbl str s ()
 space = () <$ satisfy isSpace
