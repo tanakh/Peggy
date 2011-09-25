@@ -45,32 +45,35 @@ genDecs = generate . removeLeftRecursion . normalize
 
 generate :: Syntax -> Q [Dec]
 generate defs = do
-  tblName <- newName "MemoTable"
-  ps <- parsers tblName
-  sequence $ [defTbl tblName, instTbl tblName] ++ ps
+  tblTypName <- newName "MemoTable"
+  tblDatName <- newName "MemoTable"
+  ps <- parsers tblTypName
+  sequence $ [ defTbl tblTypName tblDatName
+             , instTbl tblTypName tblDatName
+             ] ++ ps
   where
   n = length defs
   
-  defTbl tblName = do
+  defTbl tblTypName tblDatName = do
     s <- newName "s"
     str <- newName "str"
-    dataD (cxt []) tblName [PlainTV str, PlainTV s] [con s str] []
+    dataD (cxt []) tblTypName [PlainTV str, PlainTV s] [con s str] []
     where
-      con s str = recC tblName $ map toMem defs where
+      con s str = recC tblDatName $ map toMem defs where
         toMem (Definition nont typ _) = do
           t <- [t| HT.HashTable $(varT s) Int
                    (Result $(varT str) $(parseType' typ)) |]
           return (mkName $ "tbl_" ++nont, NotStrict, t)
 
-  instTbl tblName = do
+  instTbl tblTypName tblDatName = do
     str <- newName "str"
-    instanceD (cxt []) (conT ''MemoTable `appT` (conT tblName `appT` varT str))
+    instanceD (cxt []) (conT ''MemoTable `appT` (conT tblTypName `appT` varT str))
       [ valD (varP 'newTable) (normalB body) [] ]
     where
     body = do
       names <- replicateM n (newName "t")
       doE $ map (\name -> bindS (varP name) [| HT.new |]) names
-            ++ [ noBindS $ appsE [varE 'return, appsE $ conE tblName : map varE names]]
+            ++ [ noBindS $ appsE [varE 'return, appsE $ conE tblDatName : map varE names]]
 
   parsers tblName = concat <$> mapM (gen tblName) defs
   
