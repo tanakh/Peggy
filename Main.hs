@@ -8,7 +8,8 @@ import Text.Peggy
 genParser [("qqexpr", "top")] [peggy|
 -- Simple Arithmetic Expression Parser
 
-top :: Double = expr !.
+{-
+top :: Double = expr
 
 expr :: Double
   = expr "+" fact { $1 + $2 }
@@ -26,6 +27,7 @@ term :: Double
 
 number ::: Double
   = [1-9] [0-9]* { read ($1 : $2) }
+-}
 |]
 
 main :: IO ()

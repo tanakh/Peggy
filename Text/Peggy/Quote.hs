@@ -9,8 +9,6 @@ module Text.Peggy.Quote (
 
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
-import Text.Parsec
-import Text.Parsec.Pos
 
 import Text.Peggy.Parser
 import Text.Peggy.Syntax
@@ -22,10 +20,13 @@ peggy = QuasiQuoter { quoteDec = qDecs, quoteExp = qExp, quotePat = undefined, q
 
 peggyFile :: FilePath -> Q Exp
 peggyFile filename = do
+  undefined
+  {-
   txt <- runIO $ readFile filename
   case parse syntax filename txt of
     Left err -> error $ show err
     Right syn -> dataToExpQ (const Nothing) syn
+  -}
 
 qDecs :: String -> Q [Dec]
 qDecs txt = do
@@ -46,7 +47,8 @@ genParser qqs syn = do
 --
 
 parseSyntax :: SrcPos -> String -> Syntax
-parseSyntax (SrcPos fname _ lno cno) txt =
-  case parse (setPosition (newPos fname lno cno) >> syntax) fname txt of
+parseSyntax (SrcPos fname _ lno cno) txt = undefined  {-
+  case parse ({- setPosition (newPos fname lno cno) >> -} syntax) fname txt of
     Left err -> error $ "peggy syntax-error: " ++ show err
     Right defs -> defs
+-}
