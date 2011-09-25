@@ -1,3 +1,5 @@
+{-# Language RankNTypes #-}
+
 module Text.Peggy.Quote (
   peggy,
   peggyFile,
@@ -36,7 +38,10 @@ qExp txt = do
   dataToExpQ (const Nothing) $ parseSyntax (SrcPos (loc_filename loc) 0 (fst $ loc_start loc) (snd $ loc_start loc)) txt
 
 genParser :: [(String, String)] -> Syntax -> Q [Dec]
-genParser qqs syn = genDecs syn
+genParser qqs syn = do
+  qq <- mapM (genQQ syn) qqs
+  dec <- genDecs syn
+  return $ concat qq ++ dec
 
 --
 

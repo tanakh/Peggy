@@ -106,12 +106,12 @@ memo ft p = Parser $ \tbl pos@(SrcPos _ n _ _) s -> do
 
 parse :: MemoTable tbl
          => (forall s . Parser tbl str s a)
-         -> String
+         -> SrcPos
          -> str
          -> Either ParseError a
-parse p inputName str = runST $ do
+parse p pos str = runST $ do
   tbl <- newTable
-  res <- unParser p tbl (SrcPos inputName 0 1 1) str
+  res <- unParser p tbl pos str
   case res of
     Parsed _ _ ret -> return $ Right ret
     Failed err -> return $ Left err

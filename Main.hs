@@ -5,7 +5,7 @@ module Main (main) where
 
 import Text.Peggy
 
-genParser [] [peggy|
+genParser [("qqexpr", "top")] [peggy|
 -- Simple Arithmetic Expression Parser
 
 top :: Double = expr !.
@@ -29,4 +29,4 @@ number ::: Double
 |]
 
 main :: IO ()
-main = print . parse top "<stdin>" =<< getContents
+main = print . parse top (SrcPos "<stdin>" 0 1 1) =<< getContents

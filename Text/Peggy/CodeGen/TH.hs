@@ -4,6 +4,7 @@
 
 module Text.Peggy.CodeGen.TH (
   genDecs,
+  genQQ,
   ) where
 
 import Control.Applicative
@@ -12,11 +13,32 @@ import qualified Data.HashTable.ST.Basic as HT
 import qualified Data.ListLike as LL
 import Language.Haskell.Meta
 import Language.Haskell.TH
+import Language.Haskell.TH.Quote
 import Text.Peggy.Prim
 import Text.Peggy.Syntax
 import Text.Peggy.SrcLoc
 import Text.Peggy.Normalize
 import Text.Peggy.LeftRec
+
+genQQ :: Syntax -> (String, String) -> Q [Dec]
+genQQ syn (qqName, parserName) = do
+  sig <- sigD (mkName qqName) (conT ''QuasiQuoter)
+  dat <- valD (varP $ mkName qqName) (normalB con) []
+  return [sig, dat]
+  where
+    con = do
+      e <- [| \str -> do
+               loc <- location
+               case parse $(varE $ mkName parserName) (SrcPos (loc_filename loc) 0 (fst $ loc_start loc) (snd $ loc_start loc)) str of
+                 Left err -> error $ show err
+                 Right a -> dataToExpQ (const Nothing) a 
+            |]
+      u <- [| undefined |]
+      recConE 'QuasiQuoter [ return ('quoteExp, e)
+                           , return ('quoteDec, u)
+                           , return ('quotePat, u)
+                           , return ('quoteType, u)
+                           ]
 
 genDecs :: Syntax -> Q [Dec]
 genDecs = generate . removeLeftRecursion . normalize
