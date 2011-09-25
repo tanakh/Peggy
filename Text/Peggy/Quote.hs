@@ -9,10 +9,9 @@ module Text.Peggy.Quote (
 
 import Language.Haskell.TH
 import Language.Haskell.TH.Quote
-import Text.Parsec
-import Text.Parsec.Pos
 
 import Text.Peggy.Parser
+import Text.Peggy.Prim
 import Text.Peggy.Syntax
 import Text.Peggy.SrcLoc
 import Text.Peggy.CodeGen.TH
@@ -22,20 +21,20 @@ peggy = QuasiQuoter { quoteDec = qDecs, quoteExp = qExp, quotePat = undefined, q
 
 peggyFile :: FilePath -> Q Exp
 peggyFile filename = do
-  txt <- runIO $ readFile filename
-  case parse syntax filename txt of
+  res <- runIO $ parseFile syntax filename
+  case res of
     Left err -> error $ show err
     Right syn -> dataToExpQ (const Nothing) syn
 
 qDecs :: String -> Q [Dec]
 qDecs txt = do
   loc <- location
-  genDecs $ parseSyntax (SrcPos (loc_filename loc) 0 (fst $ loc_start loc) (snd $ loc_start loc)) txt
+  genDecs $ parseSyntax (locToPos loc) txt
 
 qExp :: String -> Q Exp
 qExp txt = do
   loc <- location
-  dataToExpQ (const Nothing) $ parseSyntax (SrcPos (loc_filename loc) 0 (fst $ loc_start loc) (snd $ loc_start loc)) txt
+  dataToExpQ (const Nothing) $ parseSyntax (locToPos loc) txt
 
 genParser :: [(String, String)] -> Syntax -> Q [Dec]
 genParser qqs syn = do
@@ -46,7 +45,11 @@ genParser qqs syn = do
 --
 
 parseSyntax :: SrcPos -> String -> Syntax
-parseSyntax (SrcPos fname _ lno cno) txt =
-  case parse (setPosition (newPos fname lno cno) >> syntax) fname txt of
+parseSyntax pos txt =
+  case parse syntax pos txt of
     Left err -> error $ "peggy syntax-error: " ++ show err
     Right defs -> defs
+
+locToPos :: Loc -> SrcPos
+locToPos loc =
+  SrcPos (loc_filename loc) 0 (fst $ loc_start loc) (snd $ loc_start loc)

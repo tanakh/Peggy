@@ -1,14 +1,13 @@
-{-# Language TemplateHaskell, QuasiQuotes #-}
-{-# Language FlexibleContexts #-}
+{-# Language TemplateHaskell, QuasiQuotes, FlexibleContexts #-}
 
 module Main (main) where
 
 import Text.Peggy
 
-genParser [("qqexpr", "top")] [peggy|
+genParser [] [peggy|
 -- Simple Arithmetic Expression Parser
 
-top :: Double = expr !.
+top :: Double = expr
 
 expr :: Double
   = expr "+" fact { $1 + $2 }
@@ -29,4 +28,4 @@ number ::: Double
 |]
 
 main :: IO ()
-main = print . parse top (SrcPos "<stdin>" 0 1 1) =<< getContents
+main = print . parseString top "<stdin>" =<< getContents
