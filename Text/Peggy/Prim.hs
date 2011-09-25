@@ -11,6 +11,9 @@ module Text.Peggy.Prim (
   memo,
   parse,
   
+  getPos,
+  setPos,
+  
   anyChar,
   satisfy,
   char,
@@ -47,6 +50,10 @@ instance Error ParseError
 nullError :: ParseError
 nullError = ParseError (LocPos $ SrcPos "" 0 1 1) ""
 
+errMerge e1@(ParseError loc1 msg1) e2@(ParseError loc2 msg2)
+  | loc1 >= loc2 = e1
+  | otherwise = e2
+
 class MemoTable tbl where
   newTable :: ST s (tbl s)
 
@@ -80,7 +87,10 @@ instance MonadError ParseError (Parser tbl str s) where
 
 instance Alternative (Parser tbl str s) where
   empty = throwError nullError
-  p <|> q = catchError p (const q)
+  p <|> q =
+    catchError p $ \perr ->
+    catchError q $ \qerr ->
+    throwError $ perr `errMerge` qerr
 
 memo :: (tbl s -> HT.HashTable s Int (Result str a))
         -> Parser tbl str s a 
@@ -96,17 +106,21 @@ memo ft p = Parser $ \tbl pos@(SrcPos _ n _ _) s -> do
 
 parse :: MemoTable tbl
          => (forall s . Parser tbl str s a)
+         -> String
          -> str
          -> Either ParseError a
-parse p str = runST $ do
+parse p inputName str = runST $ do
   tbl <- newTable
-  res <- unParser p tbl (SrcPos "<input>" 0 1 1) str
+  res <- unParser p tbl (SrcPos inputName 0 1 1) str
   case res of
     Parsed _ _ ret -> return $ Right ret
     Failed err -> return $ Left err
 
 getPos :: Parser tbl str s SrcPos
 getPos = Parser $ \_ pos str -> return $ Parsed pos str pos
+
+setPos :: SrcPos -> Parser tbl str s ()
+setPos pos = Parser $ \_ _ str -> return $ Parsed pos str ()
 
 parseError :: String -> Parser tbl str s a
 parseError msg =
@@ -124,7 +138,7 @@ anyChar = Parser $ \_ pos str ->
 satisfy :: LL.ListLike str Char => (Char -> Bool) -> Parser tbl str s Char
 satisfy p = do
   c <- anyChar
-  when (not $ p c) $ parseError "unexpected input"
+  when (not $ p c) $ throwError nullError
   return c
 
 char :: LL.ListLike str Char => Char -> Parser tbl str s Char

@@ -8,7 +8,7 @@ module Text.Peggy.SrcLoc (
 data SrcLoc
   = LocPos  !SrcPos
   | LocSpan !SrcPos !SrcPos
-  deriving (Show)
+  deriving (Show, Eq, Ord)
 
 data SrcPos =
   SrcPos
@@ -17,7 +17,7 @@ data SrcPos =
   , locLine :: {-# UNPACK #-} !Int
   , locCol  :: {-# UNPACK #-} !Int
   }
-  deriving (Show)
+  deriving (Show, Eq, Ord)
 
 tabWidth :: Int
 tabWidth = 8
