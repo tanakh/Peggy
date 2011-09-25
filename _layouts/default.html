@@ -71,7 +71,7 @@
         <a class="brand" href="#">Peggy</a>
         <ul class="nav">
           {% for p in site %}
-            <li><a href="#">{{ p.title }}</a></li>
+            <li><a href="{{ p.url }}">{{ p.title }}</a></li>
           {% endfor %}
         </ul>
       </div>

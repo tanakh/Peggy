@@ -8,3 +8,9 @@ Peggy is a parser generator for Haskell.
 ## About Peggy
 
 ## Quick Start
+
+You can install Peggy from Hackage:
+
+{% highlight html %}
+$ cabal install Peggy
+{% endhighlight %}
