@@ -11,6 +11,6 @@ Peggy is a parser generator for Haskell.
 
 You can install Peggy from Hackage:
 
-{% highlight html %}
+{% highlight bash %}
 $ cabal install Peggy
 {% endhighlight %}
