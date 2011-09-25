@@ -1,3 +1,5 @@
+{-# Language DeriveDataTypeable #-}
+
 module Text.Peggy.Syntax (
   Syntax,
   Definition(..),
@@ -9,11 +11,13 @@ module Text.Peggy.Syntax (
   HaskellType,
   ) where
 
+import Data.Data
+
 type Syntax = [Definition]
 
 data Definition
   = Definition Identifier HaskellType Expr
-  deriving (Show)
+  deriving (Show, Typeable, Data)
 
 data Expr
   = Terminals Bool Bool String
@@ -39,19 +43,19 @@ data Expr
   | Token  Expr
     
   | Semantic Expr CodeFragment
-  deriving (Show)
+  deriving (Show, Typeable, Data)
 
 data CharRange
   = CharRange Char Char
   | CharOne Char
-  deriving (Show)
+  deriving (Show, Typeable, Data)
 
 type CodeFragment = [CodePart]
 
 data CodePart
   = Snippet String
   | Argument Int
-  deriving (Show)
+  deriving (Show, Typeable, Data)
 
 type Identifier = String
 type HaskellType = String

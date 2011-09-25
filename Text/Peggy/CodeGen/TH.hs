@@ -3,8 +3,7 @@
 {-# Language FlexibleContexts #-}
 
 module Text.Peggy.CodeGen.TH (
-  genCode,
-  removeLeftRecursion,
+  genDecs,
   ) where
 
 import Control.Applicative
@@ -19,8 +18,8 @@ import Text.Peggy.SrcLoc
 import Text.Peggy.Normalize
 import Text.Peggy.LeftRec
 
-genCode :: Syntax -> Q [Dec]
-genCode = generate . removeLeftRecursion . normalize
+genDecs :: Syntax -> Q [Dec]
+genDecs = generate . removeLeftRecursion . normalize
 
 generate :: Syntax -> Q [Dec]
 generate defs = do

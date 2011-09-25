@@ -1,3 +1,5 @@
+{-# Language DeriveDataTypeable #-}
+
 module Text.Peggy.SrcLoc (
   SrcLoc(..),
   SrcPos(..),
@@ -5,10 +7,12 @@ module Text.Peggy.SrcLoc (
   advance,
   ) where
 
+import Data.Data
+
 data SrcLoc
   = LocPos  !SrcPos
   | LocSpan !SrcPos !SrcPos
-  deriving (Show, Eq, Ord)
+  deriving (Show, Eq, Ord, Typeable, Data)
 
 data SrcPos =
   SrcPos
@@ -17,7 +21,7 @@ data SrcPos =
   , locLine :: {-# UNPACK #-} !Int
   , locCol  :: {-# UNPACK #-} !Int
   }
-  deriving (Show, Eq, Ord)
+  deriving (Show, Eq, Ord, Typeable, Data)
 
 tabWidth :: Int
 tabWidth = 8
