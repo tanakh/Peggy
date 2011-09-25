@@ -1,5 +1,4 @@
-{-# Language TemplateHaskell, QuasiQuotes #-}
-{-# Language FlexibleContexts #-}
+{-# Language TemplateHaskell, QuasiQuotes, FlexibleContexts #-}
 
 module Main (main) where
 
@@ -8,7 +7,6 @@ import Text.Peggy
 genParser [("qqexpr", "top")] [peggy|
 -- Simple Arithmetic Expression Parser
 
-{-
 top :: Double = expr
 
 expr :: Double
@@ -27,7 +25,6 @@ term :: Double
 
 number ::: Double
   = [1-9] [0-9]* { read ($1 : $2) }
--}
 |]
 
 main :: IO ()
