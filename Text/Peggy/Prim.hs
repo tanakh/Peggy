@@ -8,8 +8,11 @@ module Text.Peggy.Prim (
   ParseError(..),
   MemoTable(..),
   
-  memo,
   parse,
+  parseString,
+  parseFile,
+  
+  memo,
   
   getPos,
   setPos,
@@ -50,6 +53,7 @@ instance Error ParseError
 nullError :: ParseError
 nullError = ParseError (LocPos $ SrcPos "" 0 1 1) ""
 
+errMerge :: ParseError -> ParseError -> ParseError
 errMerge e1@(ParseError loc1 msg1) e2@(ParseError loc2 msg2)
   | loc1 >= loc2 = e1
   | otherwise = e2
@@ -115,6 +119,21 @@ parse p pos str = runST $ do
   case res of
     Parsed _ _ ret -> return $ Right ret
     Failed err -> return $ Left err
+
+parseString :: MemoTable tbl
+             => (forall s . Parser tbl str s a)
+             -> String
+             -> str
+             -> Either ParseError a
+parseString p inputName str =
+  parse p (SrcPos inputName 0 1 1) str
+
+parseFile :: MemoTable tbl
+             => (forall s . Parser tbl String s a)
+             -> FilePath
+             -> IO (Either ParseError a)
+parseFile p fp =
+  parse p (SrcPos fp 0 1 1) <$> readFile fp
 
 getPos :: Parser tbl str s SrcPos
 getPos = Parser $ \_ pos str -> return $ Parsed pos str pos

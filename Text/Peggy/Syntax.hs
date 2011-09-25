@@ -17,7 +17,7 @@ type Syntax = [Definition]
 
 data Definition
   = Definition Identifier HaskellType Expr
-  deriving (Show, Typeable, Data)
+  deriving (Show, Eq, Typeable, Data)
 
 data Expr
   = Terminals Bool Bool String
@@ -43,19 +43,19 @@ data Expr
   | Token  Expr
     
   | Semantic Expr CodeFragment
-  deriving (Show, Typeable, Data)
+  deriving (Show, Eq, Typeable, Data)
 
 data CharRange
   = CharRange Char Char
   | CharOne Char
-  deriving (Show, Typeable, Data)
+  deriving (Show, Eq, Typeable, Data)
 
 type CodeFragment = [CodePart]
 
 data CodePart
   = Snippet String
   | Argument Int
-  deriving (Show, Typeable, Data)
+  deriving (Show, Eq, Typeable, Data)
 
 type Identifier = String
 type HaskellType = String

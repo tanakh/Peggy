@@ -183,9 +183,9 @@ charLit = memo tbl_charLit $ ((do string "\\"
                                                          return $ (v1)))
 escChar :: forall str_51 s_52 . ListLike str_51 Char =>
                                 Parser (MemoTable_0 str_51) str_51 s_52 Char
-escChar = memo tbl_escChar $ (((((((do string "\\n"
-                                       return '\n') <|> (do string "\\r"
-                                                            return '\r')) <|> (do string "\\t"
+escChar = memo tbl_escChar $ (((((((do string "n"
+                                       return '\n') <|> (do string "r"
+                                                            return '\r')) <|> (do string "t"
                                                                                   return '\t')) <|> (do string "\\"
                                                                                                         return '\\')) <|> (do string "\""
                                                                                                                               return '"')) <|> (do string "'"
@@ -247,7 +247,7 @@ ident = memo tbl_ident $ ((many skip *> (do v1 <- satisfy (\c -> ((('a' <= c) &&
                                             return (v1 : v2))) <* many skip)
 skip :: forall str_71 s_72 . ListLike str_71 Char =>
                              Parser (MemoTable_0 str_71) str_71 s_72 ()
-skip = memo tbl_skip $ ((do v1 <- satisfy (\c -> ((((((c == ' ') || (c == '\\')) || (c == 'r')) || (c == '\\')) || (c == 'n')) || (c == '\\')) || (c == 't'))
+skip = memo tbl_skip $ ((do v1 <- satisfy (\c -> (((c == ' ') || (c == '\r')) || (c == '\n')) || (c == '\t'))
                             return ()) <|> (do v1 <- comment
                                                return $ (v1)))
 comment :: forall str_73 s_74 . ListLike str_73 Char =>
@@ -258,10 +258,10 @@ comment = memo tbl_comment $ ((do v1 <- lineComment
 lineComment :: forall str_75 s_76 . ListLike str_75 Char =>
                                     Parser (MemoTable_0 str_75) str_75 s_76 ()
 lineComment = memo tbl_lineComment $ (do string "--"
-                                         v1 <- many (do unexpect (string "\\n")
+                                         v1 <- many (do unexpect (string "\n")
                                                         v1 <- anyChar
                                                         return $ (v1))
-                                         string "\\n"
+                                         string "\n"
                                          return ())
 regionComment :: forall str_77 s_78 . ListLike str_77 Char =>
                                       Parser (MemoTable_0 str_77) str_77 s_78 ()
