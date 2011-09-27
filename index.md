@@ -72,6 +72,8 @@ Peggy generates modern Haskell code, which is:
 Peggy is an embeded DSL for Haskell.
 You can embeded your parser in Haskell source code directly using [Template Haskell][TH] and [Quasiquotation][QQ] looks like below. The code is checked by Haskell's type-checker and you need no more separated grammer file.
 
+    {-# Language TemplateHaskell, QuasiQuotes, FlexibleContexts #-}
+    
     import Text.Peggy
     
     [peggy|

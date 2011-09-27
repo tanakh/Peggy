@@ -52,7 +52,9 @@ $ cabal install Peggy</pre>
 </ul>
 <h2 id="embeded-dsl">Embeded DSL</h2>
 <p>Peggy is an embeded DSL for Haskell. You can embeded your parser in Haskell source code directly using <a href="http://www.haskell.org/haskellwiki/Template_Haskell">Template Haskell</a> and <a href="http://www.haskell.org/haskellwiki/Quasiquotation">Quasiquotation</a> looks like below. The code is checked by Haskell’s type-checker and you need no more separated grammer file.</p>
-<pre class="prettyprint">import Text.Peggy
+<pre class="prettyprint">{-# Language TemplateHaskell, QuasiQuotes, FlexibleContexts #-}
+
+import Text.Peggy
 
 [peggy|
 top :: Double = expr !.
