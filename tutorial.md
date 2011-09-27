@@ -120,6 +120,36 @@ At last, you can invoke your parser by using following function.
 
 It can parse any String-like sequence by passed parser.
 
+## Generate Quasi-Quoter
+
+Peggy can generate user defined quasi-quoter easily.
+
+    module Nums (numsqq) where
+    
+    genParser [("numsqq", "nums")] [peggy|
+    nums :: [Int]
+      = num*
+    num ::: Int
+      = [0-9]+ { read $1 }
+    |]
+
+First argument of genParser is a list of pair, qqname and top-nonterminal.
+In above example, a quasi-quoter named "numsqq" are defined.
+It generates a list of integers.
+Because of a restriction of Template Haskell,
+you must split definition and use of quasi-quoters.
+
+    {-# Language TemplateHaskell, QuasiQuotes, FlexibleContexts #-}
+    import Nums
+    
+    main :: IO ()
+    main = print [numsqq| 1 2 3 4 5 |]
+
+Then, you can use it.
+
+    $ runhaskell Test.hs
+    [1, 2, 3, 4, 5]
+
 ## Learn more
 
 * Some example of more complex parsers are [here](example.html).
