@@ -21,7 +21,7 @@
           <li><a href="tutorial.html">Tutorial</a>
           <li><a href="syntax.html">Syntax</a>
           <li><a href="example.html">Example</a>
-          <li><a href="haddock/index.html">Reference</a>
+          <li><a href="/haddock/index.html">Reference</a>
           <li><a href="https://github.com/tanakh/Peggy">Repository</a>
           <li><a href="about.html">About</a>
 
