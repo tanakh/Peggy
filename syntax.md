@@ -161,5 +161,5 @@ If these nonterminals are not defined, default implementation is used.
 [PEG]: http://en.wikipedia.org/wiki/Parsing_expression_grammar
 [CFG]: http://en.wikipedia.org/wiki/Context-free_grammar
 [REG]: http://en.wikipedia.org/wiki/Regular_expression
-[BOOT]: https://github.com/tanakh/Peggy/blob/master/bootstrup/peggy.peggy
+[BOOT]: https://github.com/tanakh/Peggy/blob/master/bootstrap/peggy.peggy
 [LREC]: http://en.wikipedia.org/wiki/Left_recursion

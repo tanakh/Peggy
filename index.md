@@ -3,7 +3,6 @@ title: The Parser Generator for Haskell
 ---
 
 <div class="row">
-
 <div class="span5">
 
 ## What is it
@@ -36,8 +35,9 @@ Github repository is [here][REPO].
 so you can start writing practical server immediately.
 
 </div>
-
 </div>
+
+-----
 
 <div class="row">
 <div class="span14">
@@ -102,7 +102,7 @@ You can embeded your parser in Haskell source code directly using [Template Hask
 
 ## Learn More
 
-You can find more document about Peggy [here](reference.html).
+You can find more document about Peggy [here](/syntax.html).
 
 </div>
 </div>
