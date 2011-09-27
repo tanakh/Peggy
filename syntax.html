@@ -4,7 +4,7 @@
 <h2 id="syntax-of-peggy">Syntax of Peggy</h2>
 <p>Peggy support <a href="http://pdos.csail.mit.edu/~baford/packrat/">PEG</a> and a notation based on <a href="http://en.wikipedia.org/wiki/Parsing_expression_grammar">this wikipedia page</a>.</p>
 <h3 id="self-definition-of-peggy-syntax">Self definition of Peggy syntax</h3>
-<p><a href="https://github.com/tanakh/Peggy/blob/master/bootstrup/peggy.peggy">Here</a> is complete definition of Peggy grammer which is used for bootstrapping.</p>
+<p><a href="https://github.com/tanakh/Peggy/blob/master/bootstrap/peggy.peggy">Here</a> is complete definition of Peggy grammer which is used for bootstrapping.</p>
 <h2 id="lexical-rule">Lexical Rule</h2>
 <p>Identifier of Peggy syntax is alphabet and digit sequence starting lower-case letter.</p>
 <pre class="prettyprint">ident ::: String = [a-z] [0-9a-zA-Z_]* { $1 : $2 }</pre>
