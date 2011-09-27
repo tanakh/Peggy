@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<head><meta charset="utf-8"><title>Peggy - Syntax</title><meta name="description" content="Peggy: The Parser Generator for Haskell"><meta name="author" content="Hideyuki Tanaka"><link rel="stylesheet" href="bootstrap/bootstrap.css"><link rel="stylesheet" href="css/default.css"><link rel="stylesheet" href="google-code-prettify/prettify.css"><script type="text/javascript" src="google-code-prettify/prettify.js"></script></head><body onload="prettyPrint()"><div class="topbar"><div class="fill"><div class="container"><a class="brand" href="index.html">Peggy</a><ul class="nav"><li><a href="index.html">Home</a></li><li><a href="#">Tutorial</a></li><li><a href="#">Manual</a></li><li><a href="#">Repository</a></li><li><a href="#">About</a></li></ul></div></div></div><div class="container"><div class="content"><div class="page-header"><h1>Peggy - Syntax</h1></div><div class="row"><div class="span14">
+<head><meta charset="utf-8"><title>Peggy - Syntax</title><meta name="description" content="Peggy: The Parser Generator for Haskell"><meta name="author" content="Hideyuki Tanaka"><link rel="stylesheet" href="bootstrap/bootstrap.css"><link rel="stylesheet" href="css/default.css"><link rel="stylesheet" href="google-code-prettify/prettify.css"><script type="text/javascript" src="google-code-prettify/prettify.js"></script></head><body onload="prettyPrint()"><div class="topbar"><div class="fill"><div class="container"><a class="brand" href="index.html">Peggy</a><ul class="nav"><li><a href="index.html">Home</a></li><li><a href="tutorial.html">Tutorial</a></li><li><a href="syntax.html">Syntax</a></li><li><a href="example.html">Example</a></li><li><a href="http://hackage.haskell.org/package/peggy">Reference</a></li><li><a href="https://github.com/tanakh/Peggy">Repository</a></li><li><a href="about.html">About</a></li></ul></div></div></div><div class="container"><div class="content"><div class="page-header"><h1>Peggy - Syntax</h1></div><div class="row"><div class="span14">
 
 <h2 id="syntax-of-peggy">Syntax of Peggy</h2>
 <p>Peggy support <a href="http://pdos.csail.mit.edu/~baford/packrat/">PEG</a> and a notation based on <a href="http://en.wikipedia.org/wiki/Parsing_expression_grammar">this wikipedia page</a>.</p>
@@ -76,7 +76,7 @@ moge = ...</pre>
 <pre class="prettyprint">regionComment :: ()
   = '/*' (regionComment / (!&quot;*/&quot; . { () }))* '*/' { () }</pre>
 <h2 id="token-behaviour">Token behaviour</h2>
-<p>Peggy recognizes an (implicit) <em>token</em>. <em>Token</em> is self delimited character sequence. It ignores pre/post white spaces. It must be delimited (token “for” does not match to character sequence “foreach”).</p>
+<p>Peggy recognizes (implicit) <em>token</em>. <em>Token</em> is self delimited character sequence. It ignores pre/post white spaces. It must be delimited (token “for” does not match to character sequence “foreach”).</p>
 <p>White space and delimtier semantic can cahnge by defining two special nonterminals, which are “space” and “delimiter”.</p>
 <pre class="prettyprint">space :: () = [ \r\n\t] { () } / lineComment / recionComment
 delimiter :: () = [()[]{}&lt;&gt;;:,./\] { () }</pre>

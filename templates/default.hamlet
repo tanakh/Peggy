@@ -18,10 +18,12 @@
         <a.brand href="index.html">Peggy
         <ul.nav>
           <li><a href="index.html">Home</a>
-          <li><a href="#">Tutorial</a>
-          <li><a href="#">Manual</a>
-          <li><a href="#">Repository</a>
-          <li><a href="#">About</a>
+          <li><a href="tutorial.html">Tutorial</a>
+          <li><a href="syntax.html">Syntax</a>
+          <li><a href="example.html">Example</a>
+          <li><a href="http://hackage.haskell.org/package/peggy">Reference</a>
+          <li><a href="https://github.com/tanakh/Peggy">Repository</a>
+          <li><a href="about.html">About</a>
 
   <div.container>
     <div.content>

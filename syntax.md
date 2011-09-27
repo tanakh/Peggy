@@ -146,7 +146,7 @@ Here is an example of usage of predicate, it parses C-like nested comment.
 
 ## Token behaviour
 
-Peggy recognizes an (implicit) _token_. _Token_ is self delimited character sequence. It ignores pre/post white spaces. It must be delimited (token "for" does not match to character sequence "foreach").
+Peggy recognizes (implicit) _token_. _Token_ is self delimited character sequence. It ignores pre/post white spaces. It must be delimited (token "for" does not match to character sequence "foreach").
 
 White space and delimtier semantic can cahnge by defining two special nonterminals, which are "space" and "delimiter".
 

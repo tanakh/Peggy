@@ -26,7 +26,7 @@ main = hakyllWith config $ do
 
   match "templates/*" $ compile templateCompiler
 
-  match (list ["index.md", "syntax.md"]) $ do
+  match (list ["index.md", "tutorial.md", "syntax.md", "example.md", "about.md"]) $ do
     route   $ setExtension "html"
     compile $ pageCompilerWithPandoc defaultHakyllParserState
                                      defaultHakyllWriterOptions { writerHtml5 = True }
