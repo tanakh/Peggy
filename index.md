@@ -102,7 +102,8 @@ You can embeded your parser in Haskell source code directly using [Template Hask
 
 ## Learn More
 
-You can find more document about Peggy [here](/syntax.html).
+You can find more document about Peggy syntax [here](/syntax.html).
+Haddock documentation is [here](/haddock/index.html).
 
 </div>
 </div>
