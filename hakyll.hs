@@ -1,6 +1,7 @@
 #! /usr/bin/env runhaskell
 {-# LANGUAGE OverloadedStrings #-}
 import Control.Arrow ((>>>))
+import Control.Monad
 import Text.XHtml.Strict
 
 import Hakyll
@@ -26,13 +27,17 @@ main = hakyllWith config $ do
 
   match "templates/*" $ compile templateCompiler
 
-  match (list ["index.md", "tutorial.md", "syntax.md", "example.md", "about.md"]) $ do
-    route   $ setExtension "html"
-    compile $ pageCompilerWithPandoc defaultHakyllParserState
-                                     defaultHakyllWriterOptions { writerHtml5 = True }
-                                     googlePrettify
-      >>> applyTemplateCompiler "templates/default.hamlet"
-      >>> relativizeUrlsCompiler
+  let srcs  = ["index.md", "tutorial.md", "syntax.md", "example.md", "about.md"]
+      langs = ["", "ja/"]
+  
+  forM_ langs $ \lan -> do
+    match (list $ map (parseIdentifier . (lan++)) srcs) $ do
+      route   $ setExtension "html"
+      compile $ pageCompilerWithPandoc defaultHakyllParserState
+                                       defaultHakyllWriterOptions { writerHtml5 = True }
+                                       googlePrettify
+        >>> applyTemplateCompiler "templates/default.hamlet"
+        >>> relativizeUrlsCompiler
 
 config :: HakyllConfiguration
 config = defaultHakyllConfiguration { deployCommand = deploy }

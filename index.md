@@ -32,7 +32,7 @@ Github repository is [here][REPO].
 ## Easy to use
 
 [Syntax of Peggy](syntax.html) is very simple and easy to understand,
-so you can start writing practical server immediately.
+so you can start writing practical parser immediately.
 
 </div>
 </div>

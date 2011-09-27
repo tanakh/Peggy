@@ -42,7 +42,7 @@ or another syntax of definition:
 
 <name> is name of nonterminal. <Type> must be specified. Type is separated by double-colon (::) or triple-colon (:::). Triple-colon has special meaning, this nonterminal is a _token_ which is a self delimited term. Specification of _token_ is described [here](#token). It is Haskell's type and is a result type of this nonterminal symbol. Definition of nonterminal is some alternatives. These are separated by '/'. Each alternative is sequence of grammers.
 
-Here is typical form of a nondeterminal definition.
+Here is typical form of a nonterminal definition.
 
     <name> :: <Type>
       = sequence ...
