@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8"><title>Peggy - Syntax</title><meta name="description" content="Peggy: The Parser Generator for Haskell"><meta name="author" content="Hideyuki Tanaka"><link rel="stylesheet" href="bootstrap/bootstrap.css"><link rel="stylesheet" href="css/default.css"><link rel="stylesheet" href="google-code-prettify/prettify.css"><script type="text/javascript" src="google-code-prettify/prettify.js"></script></head><body onload="prettyPrint()"><div class="topbar"><div class="fill"><div class="container"><a class="brand" href="index.html">Peggy</a><ul class="nav"><li><a href="index.html">Home</a></li><li><a href="#">Tutorial</a></li><li><a href="#">Manual</a></li><li><a href="#">Repository</a></li><li><a href="#">About</a></li></ul></div></div></div><div class="container"><div class="content"><div class="page-header"><h1>Peggy - Syntax</h1></div><div class="row"><div class="span14">
+
+<h2 id="syntax-of-peggy">Syntax of Peggy</h2>
+<p>Peggy support <a href="http://pdos.csail.mit.edu/~baford/packrat/">PEG</a> and a notation based on <a href="http://en.wikipedia.org/wiki/Parsing_expression_grammar">this wikipedia page</a>.</p>
+<h3 id="self-definition-of-peggy-syntax">Self definition of Peggy syntax</h3>
+<p><a href="https://github.com/tanakh/Peggy/blob/master/bootstrup/peggy.peggy">Here</a> is complete definition of Peggy grammer which is used for bootstrapping.</p>
+<h2 id="lexical-rule">Lexical Rule</h2>
+<p>Identifier of Peggy syntax is alphabet and digit sequence starting lower-case letter.</p>
+<pre class="prettyprint">ident ::: String = [a-z] [0-9a-zA-Z_]* { $1 : $2 }</pre>
+<p>Peggy syntax is ignore spaces. Space is just a delimiter. Any code layout can be allowd.</p>
+<h3 id="comment">Comment</h3>
+<p>Haskell-like comment are allowed.</p>
+<pre class="prettyprint">-- This is comment
+hoge = ...
+{- region comment {- and nested comment -} are also usable -}
+moge = ...</pre>
+<h2 id="definition">Definition</h2>
+<p>Peggy syntax is some definitions of nonterminal symbol. Each definition is looks like this:</p>
+<pre class="prettyprint">&lt;name&gt; :: &lt;Type&gt; = &lt;expr&gt;</pre>
+<p>or another syntax of definition:</p>
+<pre class="prettyprint">&lt;name&gt; ::: &lt;Type&gt; = &lt;expr&gt;</pre>
+<p><name> is name of nonterminal. <Type> must be specified. Type is separated by double-colon (::) or triple-colon (:::). Triple-colon has special meaning, this nonterminal is a <em>token</em> which is a self delimited term. Specification of <em>token</em> is described <a href="#token">here</a>. It is Haskell’s type and is a result type of this nonterminal symbol. Definition of nonterminal is some alternatives. These are separated by ‘/’. Each alternative is sequence of grammers.</p>
+<p>Here is typical form of a nondeterminal definition.</p>
+<pre class="prettyprint">&lt;name&gt; :: &lt;Type&gt;
+  = sequence ...
+  / sequence ...
+  ...</pre>
+<h3 id="left-recursion">Left recursion</h3>
+<p>Peggy allows <a href="http://en.wikipedia.org/wiki/Left_recursion">left recursion</a> by transforming a grammer to a grammer which does not contain left recursions.</p>
+<h2 id="expression">Expression</h2>
+<p>Syntax of expression is based on PEG’s one. An expression is constructed by following rules.</p>
+<h3 id="string-literal">String Literal</h3>
+<p>String literal matches exact same sequence of chars.</p>
+<pre class="prettyprint">'hoge' -- char sequence
+&quot;hoge&quot; -- string token</pre>
+<p>A string quoted by single-quote (’) is raw-literal, which matches exact same char sequence. A string quoted by double-quote (&quot;) is string <em>token</em>. It means delimited string. A particular behaviour of token is descrived <a href="#token">here</a>.</p>
+<p>String literal has no value.</p>
+<h3 id="charset">Charset</h3>
+<p>An usual character notation like <a href="http://en.wikipedia.org/wiki/Regular_expression">regular expression</a>.</p>
+<pre class="prettyprint">[a-zA-Z0-9_] -- lower letters, upper letters, digits and under-score (_)
+[^0-9] -- a char except digits</pre>
+<p>Charset has a character value.</p>
+<h3 id="ordered-choice">Ordered Choice</h3>
+<p><em>Ordered choice</em> is sequence of expression separated by ‘/’.</p>
+<pre class="prettyprint">&lt;e1&gt; / &lt;e2&gt; /  ...</pre>
+<p>It accepts any alternative. In contrast to <a href="http://en.wikipedia.org/wiki/Context-free_grammar">CFG</a>, PEG select a most left match always. So the order of choice is meaningfully. The type of all sub-expression must be same.</p>
+<h3 id="sequence">Sequence</h3>
+<p><em>Sequence</em> is a sequence of expression.</p>
+<pre class="prettyprint">&lt;e1&gt; &lt;e2&gt; ...</pre>
+<h3 id="semantic-annotation">Semantic Annotation</h3>
+<p>Each <em>sequence</em> can has semantic rule. It specify a return value of the term.</p>
+<pre class="prettyprint">&lt;e1&gt; &lt;e2&gt; ... { Haskell Expression ... }</pre>
+<p>Haskell expression specify the return value of expression. It must be a single Haskell expression. Here is an example:</p>
+<pre class="prettyprint">expr :: Int
+  = expr &quot;+&quot; term { $1 + $2 }</pre>
+<p>Haskell expression can contain <em>placeholder</em> which forms $&lt;num&gt;. The number means the n-th value of sub-expression. <em>Literal</em> and <em>predicate</em> do not has a value, so it is skipped. In above example, $1 indicates expr’s value and $2 indicates term’s value.</p>
+<p><em>Sequence</em> without semantic annotation has a value of tupple of subterms.</p>
+<pre class="prettyprint">hoge :: (Int, Int, Int)
+  = integer &quot;,&quot; integer &quot;,&quot; integer</pre>
+<h3 id="zero-or-more-one-or-more-optional-zero-or-one">Zero or more, One or more, Optional (Zero or One)</h3>
+<p>The suffix ‘*’ means zero or more repetition.</p>
+<pre class="prettyprint">&lt;e&gt;*</pre>
+<p>The suffix ‘+’ means one or more repetition.</p>
+<pre class="prettyprint">&lt;e&gt;+</pre>
+<p>The suffix ’?’ means one or zero occursion.</p>
+<pre class="prettyprint">&lt;e&gt;?</pre>
+<p>Unlike in CFG, these operator always behave greedily, these match as long as possible.</p>
+<p>‘*’ and ‘+’ returns a list of the value. ’?’ returns a value typed <em>Maybe a</em>.</p>
+<h3 id="and-predicate-not-predicate">And predicate, Not predicate</h3>
+<p>The prefix ’?’ means <em>syntax predicates</em>. It look-ahead an expression and if fail to parse, the predicate fails, too. When it success, predicate successes too, but it consume no input.</p>
+<pre class="prettyprint">&amp;&lt;e&gt;</pre>
+<p>The prefix ’!’ is inverse of and predicate. It fails when look-ahead success.</p>
+<pre class="prettyprint">!&lt;e&gt;</pre>
+<p>Here is an example of usage of predicate, it parses C-like nested comment.</p>
+<pre class="prettyprint">regionComment :: ()
+  = '/*' (regionComment / (!&quot;*/&quot; . { () }))* '*/' { () }</pre>
+<h2 id="token-behaviour">Token behaviour</h2>
+<p>Peggy recognizes an (implicit) <em>token</em>. <em>Token</em> is self delimited character sequence. It ignores pre/post white spaces. It must be delimited (token “for” does not match to character sequence “foreach”).</p>
+<p>White space and delimtier semantic can cahnge by defining two special nonterminals, which are “space” and “delimiter”.</p>
+<pre class="prettyprint">space :: () = [ \r\n\t] { () } / lineComment / recionComment
+delimiter :: () = [()[]{}&lt;&gt;;:,./\] { () }</pre>
+<p>If these nonterminals are not defined, default implementation is used.</p>
+</div>
+
+
+
+
+
+
+
+
+</div></div><footer><p>Copyright © Hideyuki Tanaka 2011</p></footer></div></body>
