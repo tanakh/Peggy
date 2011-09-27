@@ -1,0 +1,35 @@
+!!!
+<head>
+  <meta charset="utf-8">
+  <title>Peggy - #{title}
+  <meta name="description" content="Peggy: The Parser Generator for Haskell">
+  <meta name="author" content="Hideyuki Tanaka">
+
+  <link rel="stylesheet" href="bootstrap/bootstrap.css">
+  <link rel="stylesheet" href="css/default.css">
+
+  <link rel="stylesheet" href="google-code-prettify/prettify.css">
+  <script type="text/javascript" src="google-code-prettify/prettify.js">
+
+<body onload="prettyPrint()">
+  <div.topbar>
+    <div.fill>
+      <div.container>
+        <a.brand href="index.html">Peggy
+        <ul.nav>
+          <li><a href="index.html">Home</a>
+          <li><a href="#">Tutorial</a>
+          <li><a href="#">Manual</a>
+          <li><a href="#">Repository</a>
+          <li><a href="#">About</a>
+
+  <div.container>
+    <div.content>
+      <div.page-header>
+        <h1>Peggy - #{title}
+
+      <div.row>
+        #{body}
+
+    <footer>
+      <p>Copyright &copy; Hideyuki Tanaka 2011
