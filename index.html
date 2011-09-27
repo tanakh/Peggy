@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8"><title>Peggy - The Parser Generator for Haskell</title><meta name="description" content="Peggy: The Parser Generator for Haskell"><meta name="author" content="Hideyuki Tanaka"><link rel="stylesheet" href="bootstrap/bootstrap.css"><link rel="stylesheet" href="css/default.css"><link rel="stylesheet" href="google-code-prettify/prettify.css"><script type="text/javascript" src="google-code-prettify/prettify.js"></script></head><body onload="prettyPrint()"><div class="topbar"><div class="fill"><div class="container"><a class="brand" href="index.html">Peggy</a><ul class="nav"><li><a href="index.html">Home</a></li><li><a href="#">Tutorial</a></li><li><a href="#">Manual</a></li><li><a href="#">Repository</a></li><li><a href="#">About</a></li></ul></div></div></div><div class="container"><div class="content"><div class="page-header"><h1>Peggy - The Parser Generator for Haskell</h1></div><div class="row"><div class="row">
+
+<div class="span5">
+
+<h2 id="what-is-it">What is it</h2>
+<p>Peggy is a parser generator for Haskell. It supports <a href="http://en.wikipedia.org/wiki/Parsing_expression_grammar">parsing expression grammer (PEG)</a> which is simple and expressive. It can generate efficient <a href="http://pdos.csail.mit.edu/~baford/packrat/">packrat parser</a>.</p>
+</div>
+
+<div class="span4">
+
+<h2 id="quick-start">Quick Start</h2>
+<p>You can install Peggy from <a href="http://hackage.haskell.org">Hackage</a>:</p>
+<pre class="prettyprint">$ cabal update
+$ cabal install Peggy</pre>
+</div>
+
+<div class="span5">
+
+<h2 id="easy-to-use">Easy to use</h2>
+<p><a href="syntax.html">Syntax of Peggy</a> is very simple and easy to understand, so you can start writing practical server immediately.</p>
+</div>
+
+</div>
+
+<div class="row">
+<div class="span14">
+
+<h2 id="parsing-expression-grammer">Parsing Expression Grammer</h2>
+<p>Peggy supports <a href="http://en.wikipedia.org/wiki/Parsing_expression_grammar">parsing expresion grammer (PEG)</a>, which is:</p>
+<ul>
+<li>No shift/reduce conflict</li>
+<li>Simple and Expressive</li>
+<li>Unlimited look-ahead</li>
+<li>Linear time parser</li>
+</ul>
+<p>And Peggy extends PEG:</p>
+<ul>
+<li>Separated list</li>
+<li>Easy to handle source location</li>
+<li>Support left recursion</li>
+</ul>
+<h2 id="modern">Modern</h2>
+<p>Peggy generates modern Haskell code, which is:</p>
+<ul>
+<li>Monadic</li>
+<li>Use fast array and hashmap</li>
+<li>Supports <a href="http://www.haskell.org/haskellwiki/Template_Haskell">Template Haskell</a> and <a href="http://www.haskell.org/haskellwiki/Quasiquotation">Quasiquotation</a></li>
+<li>Supports fast string-like type (<a href="http://hackage.haskell.org/package/bytestring">ByteString</a>, <a href="http://hackage.haskell.org/package/text">Text</a>)</li>
+<li>User friendly error handling</li>
+</ul>
+<h2 id="embeded-dsl">Embeded DSL</h2>
+<p>Peggy is an embeded DSL for Haskell. You can embeded your parser in Haskell source code directly using <a href="http://www.haskell.org/haskellwiki/Template_Haskell">Template Haskell</a> and <a href="http://www.haskell.org/haskellwiki/Quasiquotation">Quasiquotation</a> looks like below. The code is checked by Haskell’s type-checker and you need no more separated grammer file.</p>
+<pre class="prettyprint">import Text.Peggy
+
+[peggy|
+top :: Double = expr !.
+
+expr :: Double
+  = expr &quot;+&quot; fact { $1 + $2 }
+  / expr &quot;-&quot; fact { $1 - $2 }
+  / fact
+
+fact :: Double
+  = fact &quot;*&quot; term { $1 * $2 }
+  / fact &quot;/&quot; term { $1 / $2 }
+  / term
+
+term :: Double
+  = &quot;(&quot; expr &quot;)&quot;
+  / number
+
+number ::: Double
+  = [1-9] [0-9]* { read ($1 : $2) }
+|]
+
+main :: IO ()
+main = print . parseString top &quot;&lt;stdin&gt;&quot; =&lt;&lt; getContents</pre>
+<h2 id="learn-more">Learn More</h2>
+<p>You can find more document about Peggy <a href="reference.html">here</a>.</p>
+</div>
+</div>
+
+
+
+
+
+
+
+
+
+</div></div><footer><p>Copyright © Hideyuki Tanaka 2011</p></footer></div></body>
