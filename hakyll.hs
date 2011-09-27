@@ -36,7 +36,7 @@ main = hakyllWith config $ do
 
 config :: HakyllConfiguration
 config = defaultHakyllConfiguration { deployCommand = deploy }
-  where deploy = "cp -r _site/* . && ./hakyll.hs clean && git commit -am 'deploy'"
+  where deploy = "cp _site/*.html . && ./hakyll.hs clean && git commit -am 'deploy'"
 
 googlePrettify :: Pandoc -> Pandoc
 googlePrettify doc = bottomUp f doc where
