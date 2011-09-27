@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8"><title>Peggy - 構文</title><meta name="description" content="Peggy: The Parser Generator for Haskell"><meta name="author" content="Hideyuki Tanaka"><link rel="stylesheet" href="../bootstrap/bootstrap.css"><link rel="stylesheet" href="../css/default.css"><link rel="stylesheet" href="../google-code-prettify/prettify.css"><script type="text/javascript" src="../google-code-prettify/prettify.js"></script></head><body onload="prettyPrint()"><div class="topbar"><div class="fill"><div class="container"><a class="brand" href="index.html">Peggy</a><ul class="nav"><li><a href="index.html">Home</a></li><li><a href="tutorial.html">Tutorial</a></li><li><a href="syntax.html">Syntax</a></li><li><a href="example.html">Example</a></li><li><a href="haddock/index.html">Reference</a></li><li><a href="https://github.com/tanakh/Peggy">Repository</a></li><li><a href="about.html">About</a></li></ul><div class="pull-right"><ul class="nav"><li><a href="ja/">ja</a></li><li><a href="../">en</a></li></ul></div></div></div></div><div class="container"><div class="content"><div class="page-header"><h1>Peggy - 構文</h1></div><div class="row"><div class="span14">
+
+<h2 id="peggyの構文">Peggyの構文</h2>
+<p>Peggyは文法として<a href="http://pdos.csail.mit.edu/~baford/packrat/">PEG</a>を採用しています。 記法は<a href="http://en.wikipedia.org/wiki/Parsing_expression_grammar">Wikipediaのエントリ</a>のものをベースにしています。</p>
+<h3 id="peggyによるpeggyの文法の定義">PeggyによるPeggyの文法の定義</h3>
+<p><a href="https://github.com/tanakh/Peggy/blob/master/bootstrap/peggy.peggy">ここ</a> に完全なPeggyの文法の定義があります。 これはPeggy自身のパーザのブートストラップに用いられています。</p>
+<h2 id="字句ルール">字句ルール</h2>
+<p>Peggyの識別子は小文字から始まり、英字、数字、アンダースコアからなる文字列です。</p>
+<pre class="prettyprint">ident ::: String = [a-z] [0-9a-zA-Z_]* { $1 : $2 }</pre>
+<p>空白およびコメントは無視されます。 スペースは単にデリミタとしての働きをします。 ソースコードのレイアウトは自由です。</p>
+<h3 id="コメント">コメント</h3>
+<p>Haskellライクなコメントが利用できます。</p>
+<pre class="prettyprint">-- これはコメントです
+hoge = ...
+{- 範囲コメント {- および、ネストされたコメント -} も使えます -}
+moge = ...</pre>
+<h2 id="非終端記号の定義">非終端記号の定義</h2>
+<p>Peggyの構文は、非終端記号の定義の集合です。 それぞれの定義は次のような形をしています。</p>
+<pre class="prettyprint">&lt;name&gt; :: &lt;Type&gt; = &lt;expr&gt;</pre>
+<p>もしくは、次の形です。</p>
+<pre class="prettyprint">&lt;name&gt; ::: &lt;Type&gt; = &lt;expr&gt;</pre>
+<p><name> は非終端記号の名前です。 <Type> はその非終端記号のパーズ結果の（Haskellの）型です。型は必ず指定しなければいけません。 型は double-colon (::)、あるいは triple-colon (:::) で区切られます。 triple-colonは特別な意味があります。 その非終端記号が <em>token</em> として扱われるようになります （<em>token</em> の詳しい振る舞いは<a href="#token">こちら</a>を参照）。 定義の右辺は幾つかの代替部からなります。それらは ‘/’ によって区切られます。 各代替部は式の列です。</p>
+<p>典型的な非終端記号の定義は次のような形をしています。</p>
+<pre class="prettyprint">&lt;name&gt; :: &lt;Type&gt;
+  = sequence ...
+  / sequence ...
+  ...</pre>
+<h3 id="左再帰">左再帰</h3>
+<p>Peggyは<a href="http://en.wikipedia.org/wiki/Left_recursion">左再帰</a>を許しています。 これは文法を自動的に左再帰を含まない形に変換することによって実現されています。</p>
+<h2 id="式">式</h2>
+<p>式の構文とセマンティクスはPEGのものベースにしています。 式は次のルールから構成されます。</p>
+<h3 id="文字列リテラル">文字列リテラル</h3>
+<p>文字列リテラルは、正確にその文字列にマッチします。</p>
+<pre class="prettyprint">'hoge' -- 文字の列
+&quot;hoge&quot; -- 文字列&quot;トークン&quot;</pre>
+<p>シングルクオート (’) で囲われたリテラルは“rawリテラルです”。 正確にその文字列にマッチします。 ダブルクオート (&quot;) で囲われたリテラルは 文字列 <em>token</em> です。 この文字列は前後の空白を読み飛ばし、かつ前後がデリミタでなければマッチしません。 <em>token</em> の振る舞いの詳細は<a href="#token">こちら</a>を参照。</p>
+<p>文字列リテラルは値を持ちません。</p>
+<h3 id="文字クラス">文字クラス</h3>
+<p><a href="http://en.wikipedia.org/wiki/Regular_expression">正規表現</a>でおなじみの文字クラスが利用できます。</p>
+<pre class="prettyprint">[a-zA-Z0-9_] -- 小文字、大文字、数字、そしてアンダースコア
+[^0-9] -- 数字以外の文字</pre>
+<p>文字クラスはマッチした文字を値として返します。</p>
+<h3 id="順序付き選択">順序付き選択</h3>
+<p><em>順序付き選択</em> は ‘/’ で区切られた式の列です。</p>
+<pre class="prettyprint">&lt;e1&gt; / &lt;e2&gt; /  ...</pre>
+<p>これはいずれかの代替部とマッチします。 <a href="http://en.wikipedia.org/wiki/Context-free_grammar">文脈自由文法 (CFG)</a> とは異なり、PEGは一番左のマッチを常に選択します。 ゆえに式の順番は重要です。 また、すべての部分式の型は同じである必要があります。</p>
+<h3 id="列">列</h3>
+<p><em>列</em> は式の列です。</p>
+<pre class="prettyprint">&lt;e1&gt; &lt;e2&gt; ...</pre>
+<p>これら部分式の列にマッチします。</p>
+<h3 id="セマンティクスの注釈">セマンティクスの注釈</h3>
+<p>各 <em>列</em> にはセマンティクスの注釈をつけることができます。 各ルールに対して、それが返す値を（Haskellの式で）指定します。</p>
+<pre class="prettyprint">&lt;e1&gt; &lt;e2&gt; ... { Haskellの式 ... }</pre>
+<p>Haskellの式、にはひとつのHaskellの式を記述します。 例えば次のような例です。</p>
+<pre class="prettyprint">expr :: Int
+  = expr &quot;+&quot; term { $1 + $2 }</pre>
+<p>Haskellの式には <em>プレースホルダ</em> を含めることができます。 これは $&lt;num&gt; の形をしており、n番目の部分式の値がバインドされています。 <em>リテラル</em> と <em>先読み述語</em> に対しては値がバインドされません。 その項は番号をスキップされます（上の例を参照）。</p>
+<p>セマンティクスのアノテーションを持たない <em>列</em> は、部分式の値のタプルを返します。</p>
+<pre class="prettyprint">hoge :: (Int, Int, Int)
+  = integer &quot;,&quot; integer &quot;,&quot; integer</pre>
+<h3 id="ソースコードの位置情報">ソースコードの位置情報</h3>
+<p>プレースホルダとして、更に次の2つが利用できます。</p>
+<pre class="prettyprint">$p -- returns SrcPos
+$s -- returns SrcLoc</pre>
+<p>前者はこの <em>列</em> がマッチした位置の先頭を表す位置情報に、 後者はマッチした位置の範囲に、 それぞれバインドされます。</p>
+<h3 id="部分式への名前付け">部分式への名前付け</h3>
+<p>部分式の値に対して、プレースホルダを使うほか、名前をつけることもできます。 名前付けは、<ident>:expr の形で行います。</p>
+<pre class="prettyprint">for :: Stmt
+  = &quot;for&quot; &quot;(&quot; init:expr? &quot;;&quot; cond:expr? &quot;;&quot; post:expr? &quot;)&quot; &quot;{&quot; body:stmt* &quot;}&quot;
+      { ForStmt init cond post body }</pre>
+<h3 id="個以上の繰り返し1個以上の繰り返し">0個以上の繰り返し、1個以上の繰り返し</h3>
+<p>後置演算子 ‘*’ は0個以上の繰り返しを表します。</p>
+<pre class="prettyprint">&lt;e&gt;*</pre>
+<p>後置演算子 ‘+’ は1個以上の繰り返しを表します。</p>
+<pre class="prettyprint">&lt;e&gt;+</pre>
+<p>後置演算子 ’?’ は1個または0個の出現を表します。</p>
+<pre class="prettyprint">&lt;e&gt;?</pre>
+<p>CFGとは異なり、これらの演算子は常に“貪欲”に、 つまり可能な限り多くマッチするように振る舞います。</p>
+<p>‘*’ と ‘+’ は値のリストを返します。 ’?’ は Maybe a を返します。</p>
+<h3 id="and述語not述語">And述語、Not述語</h3>
+<p>前置演算子 ’?’ は、先読み述語です。 引数の式のパーズを試み、成功すれば成功、失敗すれば失敗になりますが、 いずれの場合も入力文字を消費しません。</p>
+<pre class="prettyprint">&amp;&lt;e&gt;</pre>
+<p>前置演算子 ’!’ は ’?’ と似ていますが、 こちらは引数のパーズが失敗したときに成功、成功したときに失敗という振る舞いです。</p>
+<pre class="prettyprint">!&lt;e&gt;</pre>
+<p>先読み述語の簡単な例として、 C++風のネスト可能コメントのパーザを挙げておきます。</p>
+<pre class="prettyprint">regionComment :: ()
+  = '/*' (regionComment / (!&quot;*/&quot; . { () }))* '*/' { () }</pre>
+<h2 id="トークンの振る舞い">トークンの振る舞い</h2>
+<p>Peggyは（暗黙的に） <em>token</em> を扱います。 <em>token</em> は、デリミタによって区切られた文字の列です。 これは前後の空白を読み飛ばし、また文字列の前後にデリミタを期待します （例えば、<em>token</em> “for” は 文字列 “foreach” にはマッチしない）。</p>
+<p>空白およびデリミタの挙動は、それぞれに対応する非終端記号、“space”、“delimiter” を定義することによって変更することができます。</p>
+<pre class="prettyprint">space :: () = [ \r\n\t] { () } / lineComment / recionComment
+delimiter :: () = [()[]{}&lt;&gt;;:,./\] { () }</pre>
+<p>これらが与えられない場合、デフォルトの挙動が利用されます。</p>
+</div>
+
+
+
+
+
+
+
+
+</div></div><footer><p>Copyright © Hideyuki Tanaka 2011</p></footer></div></body>

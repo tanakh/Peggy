@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8"><title>Peggy - Example</title><meta name="description" content="Peggy: The Parser Generator for Haskell"><meta name="author" content="Hideyuki Tanaka"><link rel="stylesheet" href="../bootstrap/bootstrap.css"><link rel="stylesheet" href="../css/default.css"><link rel="stylesheet" href="../google-code-prettify/prettify.css"><script type="text/javascript" src="../google-code-prettify/prettify.js"></script></head><body onload="prettyPrint()"><div class="topbar"><div class="fill"><div class="container"><a class="brand" href="index.html">Peggy</a><ul class="nav"><li><a href="index.html">Home</a></li><li><a href="tutorial.html">Tutorial</a></li><li><a href="syntax.html">Syntax</a></li><li><a href="example.html">Example</a></li><li><a href="haddock/index.html">Reference</a></li><li><a href="https://github.com/tanakh/Peggy">Repository</a></li><li><a href="about.html">About</a></li></ul><div class="pull-right"><ul class="nav"><li><a href="ja/">ja</a></li><li><a href="../">en</a></li></ul></div></div></div></div><div class="container"><div class="content"><div class="page-header"><h1>Peggy - Example</h1></div><div class="row"><div class="span14">
+
+<h2 id="simple-arithmetic-expression-parser">Simple Arithmetic Expression Parser</h2>
+<pre class="prettyprint">{-# Language TemplateHaskell, QuasiQuotes, FlexibleContexts #-}
+
+import Text.Peggy
+
+[peggy|
+top :: Double = expr !.
+
+expr :: Double
+  = expr &quot;+&quot; fact { $1 + $2 }
+  / expr &quot;-&quot; fact { $1 - $2 }
+  / fact
+
+fact :: Double
+  = fact &quot;*&quot; term { $1 * $2 }
+  / fact &quot;/&quot; term { $1 / $2 }
+  / term
+
+term :: Double
+  = &quot;(&quot; expr &quot;)&quot;
+  / number
+
+number ::: Double
+  = [1-9] [0-9]* { read ($1 : $2) }
+|]
+
+main :: IO ()
+main = print . parseString top &quot;&lt;stdin&gt;&quot; =&lt;&lt; getContents</pre>
+<h2 id="json-parser">JSON Parser</h2>
+<pre class="prettyprint">data JSON
+  = JSONString String
+  | JSONNumber Double
+  | JSONObject [(String, JSON)]
+  | JSONArray [JSON]
+  | JSONBool Bool
+  | JSONNull
+  deriving (Show)
+
+[peggy|
+jsons :: [JSON]
+  = json* !.
+
+json :: JSON
+  = object / array
+
+object :: JSON
+  = &quot;{&quot; (pair, &quot;,&quot;) &quot;}&quot; { JSONObject $1 }
+
+pair :: (String, JSON)
+  = jsstring &quot;:&quot; value
+
+array :: JSON
+  = &quot;[&quot; (value, &quot;,&quot;) &quot;]&quot; { JSONArray $1 }
+
+value :: JSON
+  = jsstring { JSONString $1 }
+  / number   { JSONNumber $1 }
+  / object
+  / array
+  / &quot;true&quot;   { JSONBool True }
+  / &quot;false&quot;  { JSONBool False }
+  / &quot;null&quot;   { JSONNull }
+
+jsstring ::: String
+  = '\&quot;' jschar* '\&quot;'
+
+jschar :: Char
+  = '\\' escChar / [^\&quot;\\\]
+
+escChar :: Char
+  = '\&quot;' { '\&quot;' }
+  / '\\' { '\\' }
+  / '/' { '/' }
+  / 'b' { '\b' }
+  / 'f' { '\f' }
+  / 'n' { '\n' }
+  / 'r' { '\r' }
+  / 't' { '\t' }
+  / 'u' hex hex hex hex { chr $ fst $ head $ readHex [$1, $2, $3, $4] }
+
+hex :: Char = [0-9a-zA-Z]
+
+number ::: Double
+  = [1-9] [0-9]* { read ($1 : $2) }
+  / [0]          { 0.0 }
+|]</pre>
+</div>
+
+</div></div><footer><p>Copyright © Hideyuki Tanaka 2011</p></footer></div></body>

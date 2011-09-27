@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<head><meta charset="utf-8"><title>Peggy - The Parser Generator for Haskell</title><meta name="description" content="Peggy: The Parser Generator for Haskell"><meta name="author" content="Hideyuki Tanaka"><link rel="stylesheet" href="../bootstrap/bootstrap.css"><link rel="stylesheet" href="../css/default.css"><link rel="stylesheet" href="../google-code-prettify/prettify.css"><script type="text/javascript" src="../google-code-prettify/prettify.js"></script></head><body onload="prettyPrint()"><div class="topbar"><div class="fill"><div class="container"><a class="brand" href="index.html">Peggy</a><ul class="nav"><li><a href="index.html">Home</a></li><li><a href="tutorial.html">Tutorial</a></li><li><a href="syntax.html">Syntax</a></li><li><a href="example.html">Example</a></li><li><a href="haddock/index.html">Reference</a></li><li><a href="https://github.com/tanakh/Peggy">Repository</a></li><li><a href="about.html">About</a></li></ul><div class="pull-right"><ul class="nav"><li><a href="ja/">ja</a></li><li><a href="../">en</a></li></ul></div></div></div></div><div class="container"><div class="content"><div class="page-header"><h1>Peggy - The Parser Generator for Haskell</h1></div><div class="row"><div class="row">
+<div class="span5">
+
+<h2 id="peggyとは">Peggyとは</h2>
+<p>PeggyはHaskell向けのパーザジェネレータです。 シンプルで扱いやすく、表現力のある <a href="http://ja.wikipedia.org/wiki/%E8%A7%A3%E6%9E%90%E8%A1%A8%E7%8F%BE%E6%96%87%E6%B3%95">Parsing expression grammer (PEG)</a> を採用し、効率のよい<a href="http://pdos.csail.mit.edu/~baford/packrat/">Packrat parser</a>を生成出来ます。</p>
+</div>
+
+<div class="span4">
+
+<h2 id="今すぐ始める">今すぐ始める</h2>
+<p><a href="http://hackage.haskell.org/package/peggy">Hackage</a>から、簡単にインストールできます。</p>
+<pre class="prettyprint">$ cabal update
+$ cabal install Peggy</pre>
+<p><a href="https://github.com/tanakh/peggy">githubのレポジトリ</a>があります。</p>
+</div>
+
+<div class="span5">
+
+<h2 id="簡単強力">簡単・強力</h2>
+<p><a href="syntax.html">Peggyの構文</a> はとてもシンプルで、すぐに習得できます。 実用的なサーバをすぐに書き始められます。</p>
+</div>
+</div>
+
+<hr></hr>
+<div class="row">
+<div class="span14">
+
+<h2 id="parsing-expression-grammer">Parsing Expression Grammer</h2>
+<p>Peggy は文法として<a href="http://ja.wikipedia.org/wiki/%E8%A7%A3%E6%9E%90%E8%A1%A8%E7%8F%BE%E6%96%87%E6%B3%95">Parsing Expression Grammer (PEG)</a>を採用しています。 PEGには次のような特徴があります。</p>
+<ul>
+<li>CFG (LL(1), LR(1), LALR(1), etc…) にある shift/reduce 競合が存在しない</li>
+<li>シンプルで表現力がある</li>
+<li>無制限の先読みが可能、パーザとスキャナを分離する必要がない</li>
+<li>入力長に対して線形時間での解析</li>
+</ul>
+<p>PeggyはさらにPEGを拡張しています。</p>
+<ul>
+<li>sepBy拡張構文</li>
+<li>強力なエラー検出とわかりやすいエラーメッセージの生成</li>
+<li>左再帰のサポート</li>
+</ul>
+<h2 id="モダンな設計">モダンな設計</h2>
+<p>PeggyはモダンなHaskellコードを生成します。</p>
+<ul>
+<li>モナディック</li>
+<li>高速な配列とハッシュマップの利用</li>
+<li><a href="http://www.haskell.org/haskellwiki/Template_Haskell">Template Haskell</a> と <a href="http://www.haskell.org/haskellwiki/Quasiquotation">Quasiquotation</a> のサポート</li>
+<li>高速な string-like (<a href="http://hackage.haskell.org/package/bytestring">ByteString</a>, <a href="http://hackage.haskell.org/package/text">Text</a>) シーケンスのサポート</li>
+<li>扱いやすいエラーハンドリング</li>
+</ul>
+<h2 id="埋め込み-dsl">埋め込み DSL</h2>
+<p>Peggy はHaskellの embeded DSL (EDSL) として提供されます。 パーザをHaskellのソースコードに直接埋め込むことができます。 これはHaskellのコードを生成し、Haskellの型チェッカによって型検査されます。</p>
+<pre class="prettyprint">{-# Language TemplateHaskell, QuasiQuotes, FlexibleContexts #-}
+
+import Text.Peggy
+
+[peggy|
+top :: Double = expr !.
+
+expr :: Double
+  = expr &quot;+&quot; fact { $1 + $2 }
+  / expr &quot;-&quot; fact { $1 - $2 }
+  / fact
+
+fact :: Double
+  = fact &quot;*&quot; term { $1 * $2 }
+  / fact &quot;/&quot; term { $1 / $2 }
+  / term
+
+term :: Double
+  = &quot;(&quot; expr &quot;)&quot;
+  / number
+
+number ::: Double
+  = [1-9] [0-9]* { read ($1 : $2) }
+|]
+
+main :: IO ()
+main = print . parseString top &quot;&lt;stdin&gt;&quot; =&lt;&lt; getContents</pre>
+<h2 id="さあはじめよう">さあ、はじめよう！</h2>
+<p>利用を始めるために便利な、いくつかのドキュメントがあります。</p>
+<ul>
+<li><a href="tutorial.html">チュートリアル</a></li>
+<li><a href="syntax.html">Peggyの構文のドキュメント</a></li>
+<li><a href="../haddock/index.html">Haddockのドキュメント</a></li>
+</ul>
+</div>
+</div>
+
+
+
+
+
+
+
+
+
+
+</div></div><footer><p>Copyright © Hideyuki Tanaka 2011</p></footer></div></body>
