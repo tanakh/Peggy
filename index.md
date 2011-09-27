@@ -24,6 +24,8 @@ You can install Peggy from [Hackage][HAC]:
     $ cabal update
     $ cabal install Peggy
 
+Github repository is [here][REPO].
+
 </div>
 
 <div class="span5">
@@ -105,7 +107,8 @@ You can find more document about Peggy [here](reference.html).
 
 [PEG]: http://en.wikipedia.org/wiki/Parsing_expression_grammar
 [PAC]: http://pdos.csail.mit.edu/~baford/packrat/
-[HAC]: http://hackage.haskell.org
+[HAC]: http://hackage.haskell.org/package/peggy
+[REPO]: https://github.com/tanakh/peggy
 [TH]: http://www.haskell.org/haskellwiki/Template_Haskell
 [QQ]: http://www.haskell.org/haskellwiki/Quasiquotation
 [BS]: http://hackage.haskell.org/package/bytestring
