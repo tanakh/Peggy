@@ -2,21 +2,42 @@
 {-# Language FlexibleContexts #-}
 {-# Language RankNTypes #-}
 
+-- |
+-- Module      : Text.Peggy.Prim
+-- Copyright   : (c) Hideyuki Tanaka 2011
+-- License     : BSD-style
+--
+-- Maintainer  : tanaka.hideyuki@gmail.com
+-- Stability   : experimental
+-- Portability : portable
+--
+-- The monadic parser type and combinators to construct
+-- packrat parsers for code generator.
+--
+
 module Text.Peggy.Prim (
-  Parser(..),
-  Result(..),
-  ParseError(..),
-  MemoTable(..),
-  
+  -- * Parsing functions
   parse,
   parseString,
   parseFile,
   
+  -- * The parser type
+  Parser(..),
+  -- * The (internal) result type
+  Result(..),
+  -- * The error type
+  ParseError(..),
+  -- * The cache type
+  MemoTable(..),
+  
+  -- * Memoising combinator
   memo,
   
+  -- * Position functions
   getPos,
   setPos,
   
+  -- * Combinators
   anyChar,
   satisfy,
   char,
@@ -25,6 +46,7 @@ module Text.Peggy.Prim (
   expect,
   unexpect,
   
+  -- * Utiligy
   space,
   ) where
 
@@ -36,6 +58,38 @@ import Data.HashTable.ST.Basic as HT
 import qualified Data.ListLike as LL
 
 import Text.Peggy.SrcLoc
+
+-- | Parsing function
+parse :: MemoTable tbl
+         => (forall s . Parser tbl str s a) -- ^ parser
+         -> SrcPos                          -- ^ input information
+         -> str                             -- ^ input string
+         -> Either ParseError a             -- ^ result
+parse p pos str = runST $ do
+  tbl <- newTable
+  res <- unParser p tbl pos str
+  case res of
+    Parsed _ _ ret -> return $ Right ret
+    Failed err -> return $ Left err
+
+-- | Parsing function with only input name
+parseString :: MemoTable tbl
+             => (forall s . Parser tbl str s a) -- ^ parser
+             -> String                          -- ^ input name
+             -> str                             -- ^ input string
+             -> Either ParseError a             -- ^ result
+parseString p inputName str =
+  parse p (SrcPos inputName 0 1 1) str
+
+-- | Parse from file
+parseFile :: MemoTable tbl
+             => (forall s . Parser tbl String s a) -- ^ parser
+             -> FilePath                           -- ^ input filename
+             -> IO (Either ParseError a)           -- ^ result
+parseFile p fp =
+  parse p (SrcPos fp 0 1 1) <$> readFile fp
+
+--
 
 newtype Parser tbl str s a
   = Parser { unParser :: tbl s -> SrcPos -> str -> ST s (Result str a) }
@@ -107,33 +161,6 @@ memo ft p = Parser $ \tbl pos@(SrcPos _ n _ _) s -> do
       v <- unParser p tbl pos s
       HT.insert (ft tbl) n v
       return v
-
-parse :: MemoTable tbl
-         => (forall s . Parser tbl str s a)
-         -> SrcPos
-         -> str
-         -> Either ParseError a
-parse p pos str = runST $ do
-  tbl <- newTable
-  res <- unParser p tbl pos str
-  case res of
-    Parsed _ _ ret -> return $ Right ret
-    Failed err -> return $ Left err
-
-parseString :: MemoTable tbl
-             => (forall s . Parser tbl str s a)
-             -> String
-             -> str
-             -> Either ParseError a
-parseString p inputName str =
-  parse p (SrcPos inputName 0 1 1) str
-
-parseFile :: MemoTable tbl
-             => (forall s . Parser tbl String s a)
-             -> FilePath
-             -> IO (Either ParseError a)
-parseFile p fp =
-  parse p (SrcPos fp 0 1 1) <$> readFile fp
 
 getPos :: Parser tbl str s SrcPos
 getPos = Parser $ \_ pos str -> return $ Parsed pos str pos

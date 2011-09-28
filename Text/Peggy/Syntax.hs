@@ -8,7 +8,7 @@ module Text.Peggy.Syntax (
   CodeFragment,
   CodePart(..),
   Identifier,
-  HaskellType,
+  TermType,
   ) where
 
 import Data.Data
@@ -16,7 +16,7 @@ import Data.Data
 type Syntax = [Definition]
 
 data Definition
-  = Definition Identifier HaskellType Expr
+  = Definition Identifier TermType Expr
   deriving (Show, Eq, Typeable, Data)
 
 data Expr
@@ -58,4 +58,4 @@ data CodePart
   deriving (Show, Eq, Typeable, Data)
 
 type Identifier = String
-type HaskellType = String
+type TermType = String

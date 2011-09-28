@@ -30,7 +30,7 @@ header =
 
 main :: IO ()
 main = do
-  res <- parseFile Stage2.syntax "peggy.peggy"
+  res <- parseFile Stage2.syntax "./peggy.peggy"
   case res of
     Left err -> error $ show err
     Right defs -> do

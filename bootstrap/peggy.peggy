@@ -64,7 +64,7 @@ rchar :: Char
   / '\\]' {']'} / '\\[' { '[' } / '\\^' { '^' } / '\\-' { '-' }
   / [^\]]
 
-haskellType :: HaskellType
+haskellType :: TermType
   = [^=]+
 
 codeFragment :: CodeFragment

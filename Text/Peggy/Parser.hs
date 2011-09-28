@@ -28,7 +28,7 @@ data MemoTable_0 str_1 s_2
                    tbl_escChar :: (HashTable s_2 Int (Result str_1 Char)),
                    tbl_range :: (HashTable s_2 Int (Result str_1 CharRange)),
                    tbl_rchar :: (HashTable s_2 Int (Result str_1 Char)),
-                   tbl_haskellType :: (HashTable s_2 Int (Result str_1 HaskellType)),
+                   tbl_haskellType :: (HashTable s_2 Int (Result str_1 TermType)),
                    tbl_codeFragment :: (HashTable s_2
                                                   Int
                                                   (Result str_1 CodeFragment)),
@@ -212,7 +212,7 @@ rchar = memo tbl_rchar $ ((((((do string "\\"
                                                                                                                         return '-')) <|> (do v1 <- satisfy $ (not . (\c -> c == ']'))
                                                                                                                                              return $ (v1)))
 haskellType :: forall str_58 s_59 . ListLike str_58 Char =>
-                                    Parser (MemoTable_0 str_58) str_58 s_59 HaskellType
+                                    Parser (MemoTable_0 str_58) str_58 s_59 TermType
 haskellType = memo tbl_haskellType $ (do v1 <- some (satisfy $ (not . (\c -> c == '=')))
                                          return $ (v1))
 codeFragment :: forall str_60 s_61 . ListLike str_60 Char =>
