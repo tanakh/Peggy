@@ -229,9 +229,13 @@ codePart = memo tbl_codePart $ ((do v1 <- argument
                                                            return (Snippet v1)))
 argument :: forall str_64 s_65 . ListLike str_64 Char =>
                                  Parser (MemoTable_0 str_64) str_64 s_65 CodePart
-argument = memo tbl_argument $ (do string "$"
-                                   v1 <- some digit
-                                   return (Argument $ read v1))
+argument = memo tbl_argument $ (((do string "$"
+                                     v1 <- some digit
+                                     return (Argument $ read v1)) <|> (do string "$"
+                                                                          string "p"
+                                                                          return ArgPos)) <|> (do string "$"
+                                                                                                  string "s"
+                                                                                                  return ArgSpan))
 digit :: forall str_66 s_67 . ListLike str_66 Char =>
                               Parser (MemoTable_0 str_66) str_66 s_67 Char
 digit = memo tbl_digit $ (do v1 <- satisfy (\c -> ('0' <= c) && (c <= '9'))

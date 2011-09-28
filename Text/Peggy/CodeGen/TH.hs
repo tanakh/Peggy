@@ -115,8 +115,12 @@ generate defs = do
     Empty ->
       [| return () |]
 
-    Semantic (Sequence es) cf ->
-      doE $ genBinds 1 es ++ [ noBindS [| return $(genCF cf) |] ]
+    Semantic (Sequence es) cf -> do
+      let needSt = hasPos cf || hasSpan cf
+          needEd = hasSpan cf
+          st = if needSt then [bindS (varP $ mkName stName) [| getPos |]] else []
+          ed = if needEd then [bindS (varP $ mkName edName) [| getPos |]] else []
+      doE $ st ++ genBinds 1 es ++ ed ++ [ noBindS [| return $(genCF cf) |] ]
     Semantic f cf ->
       genP (Semantic (Sequence [f]) cf)
 
@@ -192,9 +196,16 @@ generate defs = do
     parsed = parseExp scf
     scf = concatMap toStr cf
     toStr (Snippet str) = str
-    toStr (Argument n)  = var n
+    toStr (Argument a)  = var a
+    toStr ArgPos = "(LocPos " ++ stName ++ ")"
+    toStr ArgSpan = "(LocSpan " ++ stName ++ " " ++ edName ++ ")"
+
+  hasPos  = any (==ArgPos)
+  hasSpan = any (==ArgSpan)
 
   var n = "v" ++ show (n :: Int)
+  stName = "st_Pos"
+  edName = "ed_Pos"
 
 parseType' typ =
   case parseType typ of

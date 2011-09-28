@@ -76,6 +76,8 @@ codePart :: CodePart
 
 argument :: CodePart
   = '$' digit+ { Argument $ read $1 }
+  / '$' 'p'    { ArgPos  }
+  / '$' 's'    { ArgSpan }
 
 digit    :: Char = [0-9] 
 hexDigit :: Char = [0-9a-fA-F]
