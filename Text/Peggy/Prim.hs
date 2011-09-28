@@ -48,6 +48,8 @@ module Text.Peggy.Prim (
   
   -- * Utiligy
   space,
+  defaultDelimiter,
+  token,
   ) where
 
 import Control.Applicative
@@ -67,9 +69,9 @@ parse :: MemoTable tbl
          -> Either ParseError a             -- ^ result
 parse p pos str = runST $ do
   tbl <- newTable
-  res <- unParser p tbl pos str
+  res <- unParser p tbl pos ' ' str
   case res of
-    Parsed _ _ ret -> return $ Right ret
+    Parsed _ _ _ ret -> return $ Right ret
     Failed err -> return $ Left err
 
 -- | Parsing function with only input name
@@ -92,10 +94,10 @@ parseFile p fp =
 --
 
 newtype Parser tbl str s a
-  = Parser { unParser :: tbl s -> SrcPos -> str -> ST s (Result str a) }
+  = Parser { unParser :: tbl s -> SrcPos -> Char -> str -> ST s (Result str a) }
 
 data Result str a
-  = Parsed SrcPos str a
+  = Parsed SrcPos Char str a
   | Failed ParseError
 
 data ParseError
@@ -116,12 +118,12 @@ class MemoTable tbl where
   newTable :: ST s (tbl s)
 
 instance Monad (Parser tbl str s) where
-  return v = Parser $ \_ pos s -> return $ Parsed pos s v
-  p >>= f = Parser $ \tbl pos s -> do
-    res <- unParser p tbl pos s
+  return v = Parser $ \_ pos p s -> return $ Parsed pos p s v
+  p >>= f = Parser $ \tbl pos prev s -> do
+    res <- unParser p tbl pos prev s
     case res of
-      Parsed qos t x ->
-        unParser (f x) tbl qos t
+      Parsed qos q t x ->
+        unParser (f x) tbl qos q t
       Failed err ->
         return $ Failed err
 
@@ -136,12 +138,12 @@ instance Applicative (Parser tbl str s) where
     return $ f x
 
 instance MonadError ParseError (Parser tbl str s) where
-  throwError err = Parser $ \_ _ _ -> return $ Failed err
-  catchError p h = Parser $ \tbl pos s -> do
-    res <- unParser p tbl pos s
+  throwError err = Parser $ \_ _ _ _ -> return $ Failed err
+  catchError p h = Parser $ \tbl pos prev s -> do
+    res <- unParser p tbl pos prev s
     case res of
       Parsed {} -> return res
-      Failed err -> unParser (h err) tbl pos s
+      Failed err -> unParser (h err) tbl pos prev s
 
 instance Alternative (Parser tbl str s) where
   empty = throwError nullError
@@ -153,33 +155,33 @@ instance Alternative (Parser tbl str s) where
 memo :: (tbl s -> HT.HashTable s Int (Result str a))
         -> Parser tbl str s a 
         -> Parser tbl str s a
-memo ft p = Parser $ \tbl pos@(SrcPos _ n _ _) s -> do
+memo ft p = Parser $ \tbl pos@(SrcPos _ n _ _) prev s -> do
   cache <- HT.lookup (ft tbl) n
   case cache of
     Just v -> return v
     Nothing -> do
-      v <- unParser p tbl pos s
+      v <- unParser p tbl pos prev s
       HT.insert (ft tbl) n v
       return v
 
 getPos :: Parser tbl str s SrcPos
-getPos = Parser $ \_ pos str -> return $ Parsed pos str pos
+getPos = Parser $ \_ pos prev str -> return $ Parsed pos prev str pos
 
 setPos :: SrcPos -> Parser tbl str s ()
-setPos pos = Parser $ \_ _ str -> return $ Parsed pos str ()
+setPos pos = Parser $ \_ _ prev str -> return $ Parsed pos prev str ()
 
 parseError :: String -> Parser tbl str s a
 parseError msg =
   throwError =<< ParseError . LocPos <$> getPos <*> pure msg
 
 anyChar :: LL.ListLike str Char => Parser tbl str s Char
-anyChar = Parser $ \_ pos str ->
+anyChar = Parser $ \_ pos _ str ->
   if LL.null str
   then return $ Failed nullError
   else do
     let c  = LL.head str
         cs = LL.tail str
-    return $ Parsed (pos `advance` c) cs c
+    return $ Parsed (pos `advance` c) c cs c
 
 satisfy :: LL.ListLike str Char => (Char -> Bool) -> Parser tbl str s Char
 satisfy p = do
@@ -204,11 +206,41 @@ unexpect p = do
   when b $ parseError "unexpected input"
 
 test :: LL.ListLike str Char => Parser tbl str s a -> Parser tbl str s Bool
-test p = Parser $ \tbl pos str -> do
-  res <- unParser p tbl pos str
+test p = Parser $ \tbl pos prev str -> do
+  res <- unParser p tbl pos prev str
   return $ case res of
-    Parsed _ _ _ -> Parsed pos str True
-    Failed _ -> Parsed pos str False
+    Parsed _ _ _ _ -> Parsed pos prev str True
+    Failed _ -> Parsed pos prev str False
 
 space :: LL.ListLike str Char => Parser tbl str s ()
 space = () <$ satisfy isSpace
+
+defaultDelimiter :: LL.ListLike str Char => Parser tbl str s ()
+defaultDelimiter = () <$ satisfy isPunctuation
+
+getPrevChar :: LL.ListLike str Char => Parser tbl str s Char
+getPrevChar = Parser $ \_ pos prev str ->
+  return $ Parsed pos prev str prev  
+
+token :: LL.ListLike str Char
+         => Parser tbl str s ()
+         -> Parser tbl str s ()
+         -> Parser tbl str s a
+         -> Parser tbl str s a
+token sp del p = do
+  many sp
+  ret <- p
+  prev <- getPrevChar
+  sp <|> del <|> unexpect (satisfy $ check prev)
+  many sp
+  return ret
+  where
+    check pr cr
+      | isAlnum' pr && isAlnum' cr = True 
+      | isDigit pr && isDigit cr = True
+      | isGlyph pr && isGlyph cr = True
+      | otherwise = False
+    
+    isAlnum' c = isAlpha' c || isDigit c
+    isAlpha' c = isAlpha c || c == '_'
+    isGlyph c = isPrint c && not (isAlpha' c) && not (isDigit c)

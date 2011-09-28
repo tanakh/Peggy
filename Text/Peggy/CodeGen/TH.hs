@@ -95,12 +95,8 @@ generate defs = do
   genP e = case e of
     Terminals False False str ->
       [| string str |]
-    Terminals True  False str ->
-      [| many $(varE skip) *> string str |]
-    Terminals False True  str ->
-      [| string str <* many $(varE skip) |]
     Terminals True True  str ->
-      [| many $(varE skip) *> string str <* many $(varE skip) |]
+      genP (Token (Terminals False False str))
 
     TerminalSet rs ->
       [| satisfy $(genRanges rs) |]
@@ -146,7 +142,7 @@ generate defs = do
       [| unexpect $(genP f) |]
 
     Token f ->
-      [| many $(varE skip) *> $(genP f) <* many $(varE skip) |]
+      [| token $(varE skip) $(varE delimiter) ( $(genP f) ) |]
 
     -- these are removed normalized phase
     SepBy  {} -> error "internal desugar error"
@@ -156,6 +152,7 @@ generate defs = do
 
     where
       skip = mkName "skip"
+      delimiter = mkName "delimiter"
 
       genBinds _ [] = []
       genBinds ix (f:fs) = case f of

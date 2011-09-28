@@ -5,17 +5,23 @@ module Text.Peggy.Normalize (
 import Text.Peggy.Syntax
 
 normalize :: Syntax -> Syntax
-normalize = map desugarDef . addSkip
+normalize = map desugarDef . addSkipDelim
 
-addSkip :: Syntax -> Syntax
-addSkip defs
-  | hasSkip = defs
-  | otherwise = defaultSkipImpl : defs
+addSkipDelim :: Syntax -> Syntax
+addSkipDelim defs = skp ++ dlm ++ defs
   where
+    skp | hasSkip = []
+        | otherwise = [defaultSkipImpl]
+    dlm | hasDelim = []
+        | otherwise = [defaultDelimImpl]
+
     hasSkip = not $ null [ () | Definition nont _ _ <- defs , nont == "skip" ]
+    hasDelim = not $ null [ () | Definition nont _ _ <- defs , nont == "delimiter" ]
     
     defaultSkipImpl =
       Definition "skip" "()" $ Primitive "space"
+    defaultDelimImpl =
+      Definition "delimiter" "()" $ Primitive "defaultDelimiter"
 
 desugarDef :: Definition -> Definition
 desugarDef (Definition nont typ expr) =
