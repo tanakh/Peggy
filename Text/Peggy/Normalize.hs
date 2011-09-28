@@ -28,7 +28,7 @@ desugarDef (Definition nont typ expr) =
   Definition nont typ (desugar expr)
   where
     desugar e = case e of
-      Terminals {}-> e
+      Terminals {} -> e
       TerminalSet {} -> e
       TerminalCmp {} -> e
       TerminalAny {} -> e
