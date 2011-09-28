@@ -18,11 +18,11 @@ Category:            Language
 Build-type:          Simple
 
 Extra-source-files:  README.md
-                     bootstrup/README.md
-                     bootstrup/Stage1.hs
-                     bootstrup/Stage2.hs
-                     bootstrup/Bootstrup.hs
-                     bootstrup/peggy.peggy
+                     bootstrap/README.md
+                     bootstrap/Stage1.hs
+                     bootstrap/Stage2.hs
+                     bootstrap/Bootstrap.hs
+                     bootstrap/peggy.peggy
 
 Cabal-version:       >=1.8
 
