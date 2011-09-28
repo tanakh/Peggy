@@ -2,7 +2,7 @@
 
 # Pre-requirement
 
-Previous version of peggy (>= 0.1.3) required.
+Previous version of peggy (>= 0.2.0.1) required.
 
 # Bootstrap
 
