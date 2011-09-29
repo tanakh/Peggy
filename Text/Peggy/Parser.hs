@@ -260,7 +260,7 @@ hexDigit = memo tbl_hexDigit $ (do v1 <- satisfy (\c -> ((('0' <= c) && (c <= '9
                                    return $ (v1))
 ident :: forall str_76 s_77 . ListLike str_76 Char =>
                               Parser (MemoTable_0 str_76) str_76 s_77 String
-ident = memo tbl_ident $ token skip delimiter (do v1 <- satisfy (\c -> ('a' <= c) && (c <= 'z'))
+ident = memo tbl_ident $ token skip delimiter (do v1 <- satisfy (\c -> (('a' <= c) && (c <= 'z')) || (c == '_'))
                                                   v2 <- many (satisfy (\c -> (((('0' <= c) && (c <= '9')) || (('a' <= c) && (c <= 'z'))) || (('A' <= c) && (c <= 'Z'))) || (c == '_')))
                                                   return (v1 : v2))
 skip :: forall str_78 s_79 . ListLike str_78 Char =>

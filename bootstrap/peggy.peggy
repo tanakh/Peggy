@@ -86,7 +86,7 @@ argument :: CodePart
 digit    :: Char = [0-9] 
 hexDigit :: Char = [0-9a-fA-F]
 
-ident ::: String = [a-z] [0-9a-zA-Z_]* { $1 : $2 }
+ident ::: String = [a-z_] [0-9a-zA-Z_]* { $1 : $2 }
 
 skip :: ()
   = [ \r\n\t] { () } / comment
