@@ -265,9 +265,9 @@ ident = memo tbl_ident $ token skip delimiter (do v1 <- satisfy (\c -> (('a' <= 
                                                   return (v1 : v2))
 skip :: forall str_78 s_79 . ListLike str_78 Char =>
                              Parser (MemoTable_0 str_78) str_78 s_79 ()
-skip = memo tbl_skip $ ((do v1 <- satisfy (\c -> (((c == ' ') || (c == '\r')) || (c == '\n')) || (c == '\t'))
-                            return ()) <|> (do v1 <- comment
-                                               return $ (v1)))
+skip = memo tbl_skip $ ((do satisfy (\c -> (((c == ' ') || (c == '\r')) || (c == '\n')) || (c == '\t'))
+                            return $ ()) <|> (do v1 <- comment
+                                                 return $ (v1)))
 comment :: forall str_80 s_81 . ListLike str_80 Char =>
                                 Parser (MemoTable_0 str_80) str_80 s_81 ()
 comment = memo tbl_comment $ ((do v1 <- lineComment
@@ -276,17 +276,17 @@ comment = memo tbl_comment $ ((do v1 <- lineComment
 lineComment :: forall str_82 s_83 . ListLike str_82 Char =>
                                     Parser (MemoTable_0 str_82) str_82 s_83 ()
 lineComment = memo tbl_lineComment $ (do string "--"
-                                         v1 <- many (do unexpect (string "\n")
-                                                        v1 <- anyChar
-                                                        return $ (v1))
+                                         many (do unexpect (string "\n")
+                                                  anyChar
+                                                  return $ ())
                                          string "\n"
-                                         return ())
+                                         return $ ())
 regionComment :: forall str_84 s_85 . ListLike str_84 Char =>
                                       Parser (MemoTable_0 str_84) str_84 s_85 ()
 regionComment = memo tbl_regionComment $ (do string "{-"
-                                             v1 <- many ((do v1 <- regionComment
-                                                             return $ (v1)) <|> (do unexpect (string "-}")
-                                                                                    v1 <- anyChar
-                                                                                    return ()))
+                                             many ((do v1 <- regionComment
+                                                       return $ (v1)) <|> (do unexpect (string "-}")
+                                                                              anyChar
+                                                                              return $ ()))
                                              string "-}"
-                                             return ())
+                                             return $ ())

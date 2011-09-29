@@ -89,13 +89,13 @@ hexDigit :: Char = [0-9a-fA-F]
 ident ::: String = [a-z_] [0-9a-zA-Z_]* { $1 : $2 }
 
 skip :: ()
-  = [ \r\n\t] { () } / comment
+  = _:[ \r\n\t] / comment
 
 comment :: ()
   = lineComment / regionComment
 
 lineComment :: ()
-  = '--' (!'\n' .)* '\n' { () }
+  = '--' _:(!'\n' _:.)* '\n'
 
 regionComment :: ()
-  = '{-' (regionComment / !'-}' . { () } )* '-}' { () }
+  = '{-' _:(regionComment / !'-}' _:.)* '-}'
