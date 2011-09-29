@@ -18,7 +18,11 @@ semanticExpr :: Expr
   / sequenceExpr
 
 sequenceExpr :: Expr
-  = (suffixExpr !"::" !"=")+ { Sequence $1 }
+  = (namedExpr !"::" !"=")+ { Sequence $1 }
+
+namedExpr :: Expr
+  = ident ":" suffixExpr { Named $1 $2 }
+  / suffixExpr
 
 suffixExpr :: Expr
   = suffixExpr "*" { Many $1 }

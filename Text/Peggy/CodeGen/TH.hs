@@ -148,6 +148,10 @@ generate defs = do
     SepBy  {} -> error "internal desugar error"
     SepBy1 {} -> error "internal desugar error"
 
+    -- simply, ignoreing result value
+    Named "_" f ->
+      [| () <$ $(genP f) |]
+
     Named {} -> error "named expr must has semantic."
 
     where
@@ -156,6 +160,9 @@ generate defs = do
 
       genBinds _ [] = []
       genBinds ix (f:fs) = case f of
+        Named "_" g ->
+          noBindS (genP g) :
+          genBinds ix fs
         Named name g ->
           bindS (asP (mkName name) $ varP $ mkName (var ix)) (genP g) :
           genBinds (ix+1) fs

@@ -216,7 +216,7 @@ space :: LL.ListLike str Char => Parser tbl str s ()
 space = () <$ satisfy isSpace
 
 defaultDelimiter :: LL.ListLike str Char => Parser tbl str s ()
-defaultDelimiter = () <$ satisfy isPunctuation
+defaultDelimiter = () <$ satisfy (\c -> isPunctuation c || c == '+')
 
 getPrevChar :: LL.ListLike str Char => Parser tbl str s Char
 getPrevChar = Parser $ \_ pos prev str ->
@@ -231,14 +231,14 @@ token sp del p = do
   many sp
   ret <- p
   prev <- getPrevChar
-  sp <|> del <|> unexpect (satisfy $ check prev)
+  sp <|> expect del <|> unexpect (satisfy $ check prev)
   many sp
   return ret
   where
     check pr cr
-      | isAlnum' pr && isAlnum' cr = True 
-      | isDigit pr && isDigit cr = True
-      | isGlyph pr && isGlyph cr = True
+      | isAlnum' pr && isAlnum' cr = error "alnum" -- True 
+      | isDigit pr && isDigit cr = error "digit" -- True
+      | isGlyph pr && isGlyph cr = error ("glyph " ++ show pr ++ ", " ++ show cr) -- True
       | otherwise = False
     
     isAlnum' c = isAlpha' c || isDigit c
