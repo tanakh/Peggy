@@ -55,6 +55,7 @@ type CodeFragment = [CodePart]
 data CodePart
   = Snippet String
   | Argument Int
+  | AntiArgument Int
   | ArgPos
   | ArgSpan
   deriving (Show, Eq, Typeable, Data)

@@ -79,9 +79,10 @@ codePart :: CodePart
   / (!'}' !argument .)+  { Snippet $1 }
 
 argument :: CodePart
-  = '$' digit+ { Argument $ read $1 }
-  / '$' 'p'    { ArgPos  }
-  / '$' 's'    { ArgSpan }
+  = '$$' digit+ { AntiArgument $ read $1 }
+  / '$'  digit+ { Argument $ read $1 }
+  / '$'  'p'    { ArgPos  }
+  / '$'  's'    { ArgSpan }
 
 digit    :: Char = [0-9] 
 hexDigit :: Char = [0-9a-fA-F]

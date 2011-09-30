@@ -44,6 +44,7 @@ Library
                      , monad-control >= 0.2 && < 0.3
                      , template-haskell >= 2.5 && < 2.7
                      , haskell-src-meta >= 0.5 && < 0.6
+                     , hint >= 0.3.3 && < 0.4
   
   -- Other-modules:       
   
@@ -57,6 +58,7 @@ Executable peggy
                      , monad-control >= 0.2 && < 0.3
                      , template-haskell >= 2.5 && < 2.7
                      , haskell-src-meta >= 0.5 && < 0.6
+                     , hint >= 0.3.3 && < 0.4
 
 Source-repository head
   Type:              git

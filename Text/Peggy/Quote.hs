@@ -13,11 +13,11 @@
 --
 
 module Text.Peggy.Quote (
-  -- * Quasi Quoters
+  -- * Quasiquoter
   peggy,
   peggyFile,
   
-  -- * Parser and Quasi-quoter generating function
+  -- * Parser and Quasiquoter generating function
   genParser,
   ) where
 
@@ -117,9 +117,10 @@ genParser :: [(String, String)] -- ^ a list of pair of name of
              -> Syntax          -- ^ syntax
              -> Q [Dec]         -- ^ definitions of parsers and quasi-quoters
 genParser qqs syn = do
-  qq <- mapM (genQQ syn) qqs
-  dec <- genDecs syn
-  return $ concat qq ++ dec
+  qq   <- mapM (genQQ syn) qqs
+  qdec <- if null qqs then return [] else genQDecs syn
+  dec  <- if null qqs then genDecs syn else return []
+  return $ concat qq ++ qdec ++ dec
 
 --
 

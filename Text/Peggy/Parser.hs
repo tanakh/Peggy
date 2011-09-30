@@ -243,13 +243,15 @@ codePart = memo tbl_codePart $ ((do v1 <- argument
                                                            return (Snippet v1)))
 argument :: forall str_70 s_71 . ListLike str_70 Char =>
                                  Parser (MemoTable_0 str_70) str_70 s_71 CodePart
-argument = memo tbl_argument $ (((do string "$"
-                                     v1 <- some digit
-                                     return (Argument $ read v1)) <|> (do string "$"
-                                                                          string "p"
-                                                                          return ArgPos)) <|> (do string "$"
-                                                                                                  string "s"
-                                                                                                  return ArgSpan))
+argument = memo tbl_argument $ ((((do string "$$"
+                                      v1 <- some digit
+                                      return (AntiArgument $ read v1)) <|> (do string "$"
+                                                                               v1 <- some digit
+                                                                               return (Argument $ read v1))) <|> (do string "$"
+                                                                                                                     string "p"
+                                                                                                                     return ArgPos)) <|> (do string "$"
+                                                                                                                                             string "s"
+                                                                                                                                             return ArgSpan))
 digit :: forall str_72 s_73 . ListLike str_72 Char =>
                               Parser (MemoTable_0 str_72) str_72 s_73 Char
 digit = memo tbl_digit $ (do v1 <- satisfy (\c -> ('0' <= c) && (c <= '9'))
