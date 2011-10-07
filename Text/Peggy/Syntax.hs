@@ -1,4 +1,4 @@
-{-# Language DeriveDataTypeable #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 
 module Text.Peggy.Syntax (
   Syntax,

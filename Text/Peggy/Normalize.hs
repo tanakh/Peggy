@@ -28,6 +28,9 @@ desugarDef (Definition nont typ expr) =
   Definition nont typ (desugar expr)
   where
     desugar e = case e of
+      Terminals True True str ->
+        Token $ Terminals False False str
+        
       Terminals {} -> e
       TerminalSet {} -> e
       TerminalCmp {} -> e
@@ -46,7 +49,10 @@ desugarDef (Definition nont typ expr) =
       And f -> And $ desugar f
       Not f -> Not $ desugar f
       
-      Semantic f cf -> Semantic (desugar f) cf
+      Semantic (Sequence es) cf ->
+        Semantic (Sequence $ map desugar es) cf
+      Semantic f cf ->
+        Semantic (Sequence [desugar f]) cf
       
       SepBy f g ->
         desugar (Choice [SepBy1 f g, Semantic Empty [Snippet "[]"]])
