@@ -1,4 +1,4 @@
-{-# Language FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 import Text.Peggy.PrimST
 

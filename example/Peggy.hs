@@ -1,4 +1,4 @@
-{-# Language QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 import Data.Char
 import Numeric

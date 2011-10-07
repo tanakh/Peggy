@@ -1,5 +1,4 @@
-{-# Language QuasiQuotes #-}
-{-# Language FlexibleContexts #-}
+{-# LANGUAGE QuasiQuotes, FlexibleContexts #-}
 
 import Text.Peggy
 

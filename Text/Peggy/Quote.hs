@@ -1,4 +1,4 @@
-{-# Language RankNTypes #-}
+{-# LANGUAGE RankNTypes #-}
 
 -- |
 -- Module      : Text.Peggy.Quote

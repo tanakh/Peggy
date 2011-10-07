@@ -1,4 +1,4 @@
-{-# Language QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 import Text.Peggy
 

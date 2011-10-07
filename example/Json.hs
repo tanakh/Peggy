@@ -1,5 +1,4 @@
-{-# Language QuasiQuotes #-}
-{-# Language FlexibleContexts #-}
+{-# LANGUAGE QuasiQuotes, FlexibleContexts #-}
 
 import Control.Monad
 import qualified Data.ByteString as B

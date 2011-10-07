@@ -1,4 +1,4 @@
-{-# Language TemplateHaskell, QuasiQuotes, FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, FlexibleContexts #-}
 
 module Stage1 where
 

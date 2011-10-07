@@ -1,5 +1,5 @@
-{-# Language RankNTypes #-}
-{-# Language FlexibleContexts #-}
+{-# LANGUAGE RankNTypes, FlexibleContexts #-}
+
 module Text.Peggy.Parser (syntax) where
 import Control.Applicative
 import Data.ListLike.Base hiding (head)

@@ -1,6 +1,4 @@
-{-# Language MultiParamTypeClasses #-}
-{-# Language FlexibleContexts #-}
-{-# Language RankNTypes #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleContexts, RankNTypes #-}
 
 -- |
 -- Module      : Text.Peggy.Prim

@@ -1,4 +1,4 @@
-{-# Language TemplateHaskell, QuasiQuotes, FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, FlexibleContexts #-}
 
 import Data.Char
 import Numeric
@@ -16,8 +16,8 @@ import Text.Peggy.SrcLoc
 header :: String
 header =
   unlines
-  [ "{-# Language RankNTypes #-}"
-  , "{-# Language FlexibleContexts #-}"
+  [ "{-# LANGUAGE RankNTypes, FlexibleContexts #-}"
+  , ""
   , "module Text.Peggy.Parser (syntax) where"
   , "import Control.Applicative"
   , "import Data.ListLike.Base hiding (head)"
