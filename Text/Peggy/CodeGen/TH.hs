@@ -12,7 +12,6 @@ import Data.List
 import qualified Data.ListLike as LL
 import Data.Maybe
 import Data.Typeable ()
--- import qualified Language.Haskell.Interpreter as HINT
 import Language.Haskell.Meta
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
@@ -324,15 +323,3 @@ parseType' typ =
         return $ TupleT 0
       _ ->
         return t
-
-{-
--- Currently, it is not need
-eval :: Typeable a => String -> Q a
-eval str = do
-  res <- runIO $ HINT.runInterpreter $ do
-    HINT.setImports ["Prelude"]
-    HINT.interpret str HINT.infer
-  case res of
-    Left err -> error $ show err
-    Right ret -> return ret
--}
