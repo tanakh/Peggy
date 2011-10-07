@@ -44,7 +44,7 @@ genQQ syn (qqName, parserName) = do
                            ]
 
 genDecs :: Syntax -> Q [Dec]
-genDecs = generate . removeLeftRecursion . normalize
+genDecs = generate . normalize . removeLeftRecursion
 
 generate :: Syntax -> Q [Dec]
 generate defs = do
@@ -296,6 +296,7 @@ generate defs = do
     Terminals _ _ _ -> False
     And _ -> False
     Not _ -> False
+    Token g -> shouldBind g
     _ -> True
 
   skip = mkName "skip"
