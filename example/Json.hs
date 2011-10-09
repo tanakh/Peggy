@@ -69,4 +69,4 @@ main :: IO ()
 main =
   forever $ do
     line <- B.getLine
-    print . parse json $ LL.CS line
+    print . parseString json "<stdin>" $ LL.CS line

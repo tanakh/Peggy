@@ -60,7 +60,7 @@ desugarDef (Definition nont typ expr) =
       SepBy1 f g ->
         let f' = desugar f in
         let g' = desugar g in
-        let g'' = Semantic g' [Snippet "()"] in
+        let g'' = desugar $ Semantic g' [Snippet "()"] in
         Semantic (Sequence [f', (Many (Semantic (Sequence [g'', f']) [Argument 2]))])
         [ Argument 1
         , Snippet ":"
