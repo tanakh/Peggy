@@ -1,7 +1,9 @@
 module Text.Peggy.Normalize (
   normalize,
+  shouldBind,
   ) where
 
+import Data.List
 import Text.Peggy.Syntax
 
 normalize :: Syntax -> Syntax
@@ -41,13 +43,15 @@ desugarDef (Definition nont typ expr) =
       
       Named name f -> Named name $ desugar f
       
-      Sequence es -> Sequence $ map desugar es
       Choice es -> Choice $ map desugar es
       Many f -> Many $ desugar f
       Some f -> Some $ desugar f
       Optional f -> Optional $ desugar f
       And f -> And $ desugar f
       Not f -> Not $ desugar f
+      
+      Sequence es ->
+        desugar $ Semantic (Sequence es) $ defaultCF $ length $ filter shouldBind es
       
       Semantic (Sequence es) cf ->
         Semantic (Sequence $ map desugar es) cf
@@ -69,3 +73,15 @@ desugarDef (Definition nont typ expr) =
       
       Token f ->
         Token $ desugar f
+
+    defaultCF n =
+      [ Snippet "(" ] ++
+      intersperse (Snippet ",") (map Argument[1..n]) ++
+      [ Snippet ")" ]
+
+shouldBind f = case f of
+  Terminals _ _ _ -> False
+  And _ -> False
+  Not _ -> False
+  Token g -> shouldBind g
+  _ -> True

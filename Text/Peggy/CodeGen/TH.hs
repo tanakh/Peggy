@@ -133,9 +133,12 @@ generate defs = do
       [| lift <$> anyChar |]
 
     (False, NonTerminal nont) ->
-      [| $(varE $ mkName nont) |]
+      if isExp nont then error $ "value cannot contain exp: " ++ nont
+      else [| $(varE $ mkName nont) |]
     (True,  NonTerminal nont) ->
-      [| lift <$> $(varE $ mkName nont) |]
+      if isExp nont
+        then [| $(varE $ mkName nont) |]
+        else [| lift <$> $(varE $ mkName nont) |]
 
     (False, Primitive name) ->
       [| $(varE $ mkName name) |]
@@ -188,23 +191,6 @@ generate defs = do
     (True,  Choice es) ->
       [| $(foldl1 (\a b -> [| $a <|> $b |]) $ map (genP isE) es) |]
 
-    (False, Sequence es) -> do
-      binds <- sequence $ genBinds 1 es
-      let vn = length $ filter isBind binds
-      doE $ do
-        map return binds ++
-          [ noBindS [| return $ $(tupE $ map (varE .mkName  . var) [1..vn]) |] ]
-    (True,  Sequence es) -> do
-      binds <- sequence $ genBinds 1 es
-      let vn = length $ filter isBind binds
-      doE $ do
-        map return binds ++
-          [ noBindS [| return $(foldl fmapE (lamN vn) $ map varE (names vn)) |] ]
-      where
-        names nn = map (mkName . var) [1..nn]
-        lamN nn = lamE (map varP $ names n) $ tupE (map varE $ names nn)
-        fmapE a b = [| $a `appE` $b |]
-
     -- Semancit Code
 
     -- Generates a Normal, value constructing code.
@@ -227,6 +213,7 @@ generate defs = do
       doE $ map return bs ++
             [ noBindS [| return $ foldl appE (return $(lift =<< gcf)) $(eQnames vn) |]]
       where
+        ccf 0  = cf
         ccf nn = [Snippet $ "\\" ++ unwords (names nn ++ qames nn) ++ " -> ("] ++ cf ++ [Snippet ")"]
         eQnames nn =
           listE $ [ [| lift $(varE (mkName $ var i)) |] | i <- [1..nn]] ++
@@ -244,16 +231,16 @@ generate defs = do
       genBinds _ [] = []
       genBinds ix (f:fs) = case f of
         Named "_" g ->
-          noBindS (genP False g) :
+          noBindS (genP isE g) :
           genBinds ix fs
         Named name g ->
-          bindS (asP (mkName name) $ varP $ mkName (var ix)) (genP False g) :
+          bindS (asP (mkName name) $ varP $ mkName (var ix)) (genP isE g) :
           genBinds (ix+1) fs
         _ | shouldBind f ->
-          bindS (varP $ mkName $ var ix) (genP False f) :
+          bindS (varP $ mkName $ var ix) (genP isE f) :
           genBinds (ix+1) fs
         _ ->
-          noBindS (genP False f) :
+          noBindS (genP isE f) :
           genBinds ix fs
 
   genRanges rs =
@@ -290,13 +277,6 @@ generate defs = do
 
   isBind (BindS _ _) = True
   isBind _ = False
-
-  shouldBind f = case f of
-    Terminals _ _ _ -> False
-    And _ -> False
-    Not _ -> False
-    Token g -> shouldBind g
-    _ -> True
 
   skip = mkName "skip"
   delimiter = mkName "delimiter"
