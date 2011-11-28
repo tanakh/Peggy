@@ -234,9 +234,9 @@ token sp del p = do
   return ret
   where
     check pr cr
-      | isAlnum' pr && isAlnum' cr = error "alnum" -- True 
-      | isDigit pr && isDigit cr = error "digit" -- True
-      | isGlyph pr && isGlyph cr = error ("glyph " ++ show pr ++ ", " ++ show cr) -- True
+      | isAlnum' pr && isAlnum' cr = True -- error "alnum"
+      | isDigit pr && isDigit cr = True -- error "digit"
+      | isGlyph pr && isGlyph cr = True -- error ("glyph " ++ show pr ++ ", " ++ show cr)
       | otherwise = False
     
     isAlnum' c = isAlpha' c || isDigit c
