@@ -14,8 +14,10 @@ This is an yet another parser generator of Parsing Expression Grammer (PEG) whic
 You can find a recent stable release in Hackage DB.
 You can install this as following instruction:
 
-    $ cabal update
-    $ cabal install Peggy
+~~~ {.bash}
+$ cabal update
+$ cabal install Peggy
+~~~
 
 # Why should you use Peggy?
 
@@ -39,29 +41,29 @@ unnun, kannun...
 
 Here is an example of parsing arithmetic expressions.
 
-    {-# QuasiQuotes #-}
-    {-# Language FlexibleContexts #-}
-    
-    import Text.Peggy
-    
-    [peggy|
-    exp :: Double
-      = exp "+" fact  { $1 + $2 }
-      / exp "-" fact  { $1 - $2 }
-      / fact
-    fact :: Double
-      = fact "*" term { $1 * $2 }
-      / fact "/" term { $1 / $2 }
-      / term
-    term :: Double
-      = "(" exp ")"
-      / number
-    number ::: Double
-      = ([1-9][0-9]*) { read $1 }
-    |]
-    
-    main :: IO ()
-    main =
-      print . parse exp =<< getContents
+~~~ {.haskell}
+{-# QuasiQuotes #-}
+{-# Language FlexibleContexts #-}
 
-...
+import Text.Peggy
+
+[peggy|
+exp :: Double
+  = exp "+" fact  { $1 + $2 }
+  / exp "-" fact  { $1 - $2 }
+  / fact
+fact :: Double
+  = fact "*" term { $1 * $2 }
+  / fact "/" term { $1 / $2 }
+  / term
+term :: Double
+  = "(" exp ")"
+  / number
+number ::: Double
+  = ([1-9][0-9]*) { read $1 }
+|]
+
+main :: IO ()
+main =
+  print . parse exp =<< getContents
+~~~
