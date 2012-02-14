@@ -111,6 +111,7 @@ generate defs = do
           typ
   
   -- Generate Parser
+  genP :: Bool -> Expr -> ExpQ
   genP isE e = case (isE, e) of
     (False, Terminals False False str) ->
       [| string str |]
@@ -243,9 +244,12 @@ generate defs = do
           noBindS (genP isE f) :
           genBinds ix fs
 
+  genRanges :: [CharRange] -> ExpQ
   genRanges rs =
     let c = mkName "c" in
     lamE [varP c] $ foldl1 (\a b -> [| $a || $b |]) $ map (genRange c) rs
+
+  genRange :: Name -> CharRange -> ExpQ
   genRange c (CharRange l h) =
     [| l <= $(varE c) && $(varE c) <= h |]
   genRange c (CharOne v) =
@@ -297,9 +301,11 @@ parseType' typ =
   case parseType typ of
     Left err -> error $ "type parse error :" ++ typ ++ ", " ++ err
     Right t -> case t of
-      -- GHC.Unit.() is not a type name. Is it a bug of haskell-src-meta?
+      -- GHC.Unit.()/GHC.Tuple.() is not a type name. Is it a bug of haskell-src-meta?
       -- Use (TupleT 0) insted.
       ConT con | show con == "GHC.Unit.()" ->
+        return $ TupleT 0
+      ConT con | show con == "GHC.Tuple.()" ->
         return $ TupleT 0
       _ ->
         return t

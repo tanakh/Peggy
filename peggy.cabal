@@ -1,5 +1,5 @@
 Name:                peggy
-Version:             0.3.0
+Version:             0.3.1
 Synopsis:            The Parser Generator for Haskell
 
 Description:
@@ -16,6 +16,7 @@ Maintainer:          Hideyuki Tanaka <tanaka.hideyuki@gmail.com>
 Copyright:           Copyright (c)2011, Hideyuki Tanaka
 Category:            Language
 Build-type:          Simple
+Cabal-version:       >=1.8
 
 Extra-source-files:  README.md
                      bootstrap/README.md
@@ -24,7 +25,12 @@ Extra-source-files:  README.md
                      bootstrap/Bootstrap.hs
                      bootstrap/peggy.peggy
 
-Cabal-version:       >=1.8
+flag build-example
+  default:           False
+
+Source-repository head
+  Type:              git
+  Location:          git://github.com/tanakh/Peggy.git
 
 Library
   Exposed-modules:     Text.Peggy
@@ -37,27 +43,20 @@ Library
                      , Text.Peggy.SrcLoc
                      , Text.Peggy.Syntax
   
-  Build-depends:       base >= 4 && < 5
-                     , mtl >= 2.0 && < 2.1
-                     , ListLike >= 3.1 && < 3.2
-                     , hashtables >= 1.0 && < 1.1
-                     , monad-control >= 0.2 && < 0.3
-                     , template-haskell >= 2.5 && < 2.7
-                     , haskell-src-meta >= 0.5 && < 0.6
+  Build-depends:       base             == 4.*
+                     , mtl              == 2.0.*
+                     , ListLike         == 3.1.*
+                     , hashtables       == 1.0.*
+                     , monad-control    == 0.3.*
+                     , template-haskell >= 2.5 && < 2.8
+                     , haskell-src-meta == 0.5.*
   
-  -- Other-modules:       
-  
-Executable peggy
+Executable peggy-example
+  Hs-source-dirs:      example
   Main-is:             Main.hs
 
-  Build-depends:       base >= 4 && < 5
-                     , mtl >= 2.0 && < 2.1
-                     , ListLike >= 3.1 && < 3.2
-                     , hashtables >= 1.0 && < 1.1
-                     , monad-control >= 0.2 && < 0.3
-                     , template-haskell >= 2.5 && < 2.7
-                     , haskell-src-meta >= 0.5 && < 0.6
+  Build-depends:       base  == 4.*
+                     , peggy
 
-Source-repository head
-  Type:              git
-  Location:          git://github.com/tanakh/Peggy.git
+  if !flag(build-example)
+    Buildable:         False
