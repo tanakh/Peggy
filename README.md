@@ -2,7 +2,7 @@
 
 # About
 
-This is an yet another parser generator of Parsing Expression Grammer (PEG) which is:
+This is an yet another parser generator for Parsing Expression Grammer (PEG) which is:
 
 * Simple
 * Concise
@@ -11,8 +11,11 @@ This is an yet another parser generator of Parsing Expression Grammer (PEG) whic
 
 # Usage
 
-You can find a recent stable release in Hackage DB.
-You can install this as following instruction:
+Recent stable releases for Peggy are available from Hackage:
+
+http://hackage.haskell.org/package/peggy
+
+Follow these instructions to install:
 
 ~~~ {.bash}
 $ cabal update
@@ -21,17 +24,14 @@ $ cabal install Peggy
 
 # Why should you use Peggy?
 
-Haskell has commonly used parser generators, one of them are Alex/Happy.
-But I think Alex/Happy are not good in these points:
+Haskell has several commonly-used parser generators, for example Alex/Happy.
 
-* Generates regacy codes
+Peggy attempts to improve on these shortcomings of Alex/Happy:
 
-Alex uses only too basic libraries.
-It does not use monad-transformers, iteratee, ListLike, Text, and so on.
-
-* Tradisional Regexp/CFG based parser
-
-Parsec has no good error recovery.
+* Generates legacy codes.
+* Does not employ modern Haskell libraries and classes such as monad-transformers, iteratee, ListLike, Text, et cetera.
+* Traditional Regexp/CFG based parser.
+* Parsec has no good error recovery.
 
 unnun, kannun...
 
