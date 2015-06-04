@@ -45,10 +45,10 @@ Library
   
   Build-depends:       base             == 4.*
                      , mtl              >= 2.0
-                     , ListLike         == 3.1.*
-                     , hashtables       == 1.0.*
-                     , monad-control    == 0.3.*
-                     , template-haskell >= 2.5 && < 2.9
+                     , ListLike         >= 3.1
+                     , hashtables       >= 1.0
+                     , monad-control    >= 0.3
+                     , template-haskell >= 2.5
                      , haskell-src-meta >= 0.5
   
 Executable peggy-example
